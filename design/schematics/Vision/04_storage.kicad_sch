@@ -1,0 +1,639 @@
+(kicad_sch
+	(version 20250316)
+	(generator "bugbot-schgen")
+	(uuid "254a7ebf-0858-5c24-9b5e-baf1923d7e3d")
+	(paper "A3")
+	(lib_symbols
+		(symbol "power:GND"
+				(power global)
+				(pin_numbers
+					(hide yes)
+				)
+				(pin_names
+					(offset 0)
+					(hide yes)
+				)
+				(exclude_from_sim no)
+				(in_bom yes)
+				(on_board yes)
+				(in_pos_files yes)
+				(duplicate_pin_numbers_are_jumpers no)
+				(property "Reference" "#PWR"
+					(at 0 -6.35 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Value" "GND"
+					(at 0 -3.81 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Footprint" ""
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Datasheet" ""
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "ki_keywords" "global power"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(symbol "GND_0_1"
+					(polyline
+						(pts
+							(xy 0 0) (xy 0 -1.27) (xy 1.27 -1.27) (xy 0 -2.54) (xy -1.27 -1.27) (xy 0 -1.27)
+						)
+						(stroke
+							(width 0)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+				)
+				(symbol "GND_1_1"
+					(pin power_in line
+						(at 0 0 270)
+						(length 0)
+						(name ""
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "1"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+				)
+				(embedded_fonts no)
+			)
+		(symbol "Connector_Generic:Conn_01x06"
+				(pin_names
+					(offset 1.016)
+					(hide yes)
+				)
+				(exclude_from_sim no)
+				(in_bom yes)
+				(on_board yes)
+				(in_pos_files yes)
+				(duplicate_pin_numbers_are_jumpers no)
+				(property "Reference" "J"
+					(at 0 7.62 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Value" "Conn_01x06"
+					(at 0 -10.16 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Footprint" ""
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Datasheet" ""
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Description" "Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "ki_keywords" "connector"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "ki_fp_filters" "Connector*:*_1x??_*"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(symbol "Conn_01x06_1_1"
+					(rectangle
+						(start -1.27 6.35)
+						(end 1.27 -8.89)
+						(stroke
+							(width 0.254)
+							(type default)
+						)
+						(fill
+							(type background)
+						)
+					)
+					(rectangle
+						(start -1.27 5.207)
+						(end 0 4.953)
+						(stroke
+							(width 0.1524)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(rectangle
+						(start -1.27 2.667)
+						(end 0 2.413)
+						(stroke
+							(width 0.1524)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(rectangle
+						(start -1.27 0.127)
+						(end 0 -0.127)
+						(stroke
+							(width 0.1524)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(rectangle
+						(start -1.27 -2.413)
+						(end 0 -2.667)
+						(stroke
+							(width 0.1524)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(rectangle
+						(start -1.27 -4.953)
+						(end 0 -5.207)
+						(stroke
+							(width 0.1524)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(rectangle
+						(start -1.27 -7.493)
+						(end 0 -7.747)
+						(stroke
+							(width 0.1524)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(pin passive line
+						(at -5.08 5.08 0)
+						(length 3.81)
+						(name "Pin_1"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "1"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+					(pin passive line
+						(at -5.08 2.54 0)
+						(length 3.81)
+						(name "Pin_2"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "2"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+					(pin passive line
+						(at -5.08 0 0)
+						(length 3.81)
+						(name "Pin_3"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "3"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+					(pin passive line
+						(at -5.08 -2.54 0)
+						(length 3.81)
+						(name "Pin_4"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "4"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+					(pin passive line
+						(at -5.08 -5.08 0)
+						(length 3.81)
+						(name "Pin_5"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "5"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+					(pin passive line
+						(at -5.08 -7.62 0)
+						(length 3.81)
+						(name "Pin_6"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "6"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+				)
+				(embedded_fonts no)
+			)
+		(symbol "Device:C"
+				(pin_numbers
+					(hide yes)
+				)
+				(pin_names
+					(offset 0.254)
+				)
+				(exclude_from_sim no)
+				(in_bom yes)
+				(on_board yes)
+				(in_pos_files yes)
+				(duplicate_pin_numbers_are_jumpers no)
+				(property "Reference" "C"
+					(at 0.635 2.54 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(justify left)
+					)
+				)
+				(property "Value" "C"
+					(at 0.635 -2.54 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(justify left)
+					)
+				)
+				(property "Footprint" ""
+					(at 0.9652 -3.81 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Datasheet" ""
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Description" "Unpolarized capacitor"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "ki_keywords" "cap capacitor"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "ki_fp_filters" "C_*"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(symbol "C_0_1"
+					(polyline
+						(pts
+							(xy -2.032 0.762) (xy 2.032 0.762)
+						)
+						(stroke
+							(width 0.508)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(polyline
+						(pts
+							(xy -2.032 -0.762) (xy 2.032 -0.762)
+						)
+						(stroke
+							(width 0.508)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+				)
+				(symbol "C_1_1"
+					(pin passive line
+						(at 0 3.81 270)
+						(length 2.794)
+						(name ""
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "1"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+					(pin passive line
+						(at 0 -3.81 90)
+						(length 2.794)
+						(name ""
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "2"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+				)
+				(embedded_fonts no)
+			)
+	)
+	(text "04 - ToF\nConnector only: the VL53L5CX 8x8 is a module on a cable, under the camera for per-zone depth.\nOn the board's single I2C bus at 400kHz (pull-ups on sheet 02). LPn = enable/address, INT = frame ready." (exclude_from_sim no) (at 20 25 0)
+		(effects (font (size 2 2)) (justify left top)) (uuid "b1a00005-0000-4000-8000-000000000026"))
+	(symbol (lib_id "Connector_Generic:Conn_01x06") (at 330.2 106.68 0) (unit 1)
+		(exclude_from_sim no) (in_bom yes) (on_board yes) (dnp no) (uuid "b1a00005-0000-4000-8000-000000000001")
+		(property "Reference" "J7" (at 332.74 93.98 0) (effects (font (size 1.27 1.27)) (justify left)))
+		(property "Value" "ToF GH1.25 6P side-entry (underside)" (at 332.74 96.52000000000001 0) (effects (font (size 1.27 1.27)) (justify left)))
+		(property "Footprint" "Connector_JST:JST_GH_SM06B-GHS-TB_1x06-1MP_P1.25mm_Horizontal" (at 330.2 106.68 0) (effects (font (size 1.27 1.27)) (hide yes)))
+		(property "Datasheet" "" (at 330.2 106.68 0) (effects (font (size 1.27 1.27)) (hide yes)))
+		(property "LCSC" "C3029381" (at 330.2 106.68 0) (effects (font (size 1.27 1.27)) (hide yes)))
+		(instances (project "BugBot_Vision_Board" (path "/c9abea63-e300-5542-b489-99dc910434ae/254a7ebf-0858-5c24-9b5e-baf1923d7e3d"
+			(reference "J7") (unit 1))))
+	)
+	(symbol (lib_id "Device:C") (at 292.1 156.21 0) (unit 1)
+		(exclude_from_sim no) (in_bom yes) (on_board yes) (dnp no) (uuid "b1a00005-0000-4000-8000-000000000002")
+		(property "Reference" "C54" (at 294.64000000000004 154.94 0) (effects (font (size 1.27 1.27)) (justify left)))
+		(property "Value" "10u" (at 294.64000000000004 157.48000000000002 0) (effects (font (size 1.27 1.27)) (justify left)))
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric" (at 292.1 156.21 0) (effects (font (size 1.27 1.27)) (hide yes)))
+		(property "Datasheet" "" (at 292.1 156.21 0) (effects (font (size 1.27 1.27)) (hide yes)))
+		(property "LCSC" "C15850" (at 292.1 156.21 0) (effects (font (size 1.27 1.27)) (hide yes)))
+		(instances (project "BugBot_Vision_Board" (path "/c9abea63-e300-5542-b489-99dc910434ae/254a7ebf-0858-5c24-9b5e-baf1923d7e3d"
+			(reference "C54") (unit 1))))
+	)
+	(symbol (lib_id "Device:C") (at 304.8 156.21 0) (unit 1)
+		(exclude_from_sim no) (in_bom yes) (on_board yes) (dnp no) (uuid "b1a00005-0000-4000-8000-000000000003")
+		(property "Reference" "C55" (at 307.34000000000003 154.94 0) (effects (font (size 1.27 1.27)) (justify left)))
+		(property "Value" "100n" (at 307.34000000000003 157.48000000000002 0) (effects (font (size 1.27 1.27)) (justify left)))
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric" (at 304.8 156.21 0) (effects (font (size 1.27 1.27)) (hide yes)))
+		(property "Datasheet" "" (at 304.8 156.21 0) (effects (font (size 1.27 1.27)) (hide yes)))
+		(property "LCSC" "C1525" (at 304.8 156.21 0) (effects (font (size 1.27 1.27)) (hide yes)))
+		(instances (project "BugBot_Vision_Board" (path "/c9abea63-e300-5542-b489-99dc910434ae/254a7ebf-0858-5c24-9b5e-baf1923d7e3d"
+			(reference "C55") (unit 1))))
+	)
+	(symbol (lib_id "power:GND") (at 292.1 104.14 0) (unit 1)
+		(exclude_from_sim no) (in_bom yes) (on_board yes) (dnp no) (uuid "b1a00005-0000-4000-8000-000000000004")
+		(property "Reference" "#PWR1200" (at 292.1 104.14 0) (effects (font (size 1.27 1.27)) (hide yes)))
+		(property "Value" "GND" (at 292.1 107.95 0) (effects (font (size 1.27 1.27))))
+		(instances (project "BugBot_Vision_Board" (path "/c9abea63-e300-5542-b489-99dc910434ae/254a7ebf-0858-5c24-9b5e-baf1923d7e3d"
+			(reference "#PWR1200") (unit 1))))
+	)
+	(symbol (lib_id "power:GND") (at 292.1 165.1 0) (unit 1)
+		(exclude_from_sim no) (in_bom yes) (on_board yes) (dnp no) (uuid "b1a00005-0000-4000-8000-000000000005")
+		(property "Reference" "#PWR1201" (at 292.1 165.1 0) (effects (font (size 1.27 1.27)) (hide yes)))
+		(property "Value" "GND" (at 292.1 168.91 0) (effects (font (size 1.27 1.27))))
+		(instances (project "BugBot_Vision_Board" (path "/c9abea63-e300-5542-b489-99dc910434ae/254a7ebf-0858-5c24-9b5e-baf1923d7e3d"
+			(reference "#PWR1201") (unit 1))))
+	)
+	(symbol (lib_id "power:GND") (at 304.8 165.1 0) (unit 1)
+		(exclude_from_sim no) (in_bom yes) (on_board yes) (dnp no) (uuid "b1a00005-0000-4000-8000-000000000006")
+		(property "Reference" "#PWR1202" (at 304.8 165.1 0) (effects (font (size 1.27 1.27)) (hide yes)))
+		(property "Value" "GND" (at 304.8 168.91 0) (effects (font (size 1.27 1.27))))
+		(instances (project "BugBot_Vision_Board" (path "/c9abea63-e300-5542-b489-99dc910434ae/254a7ebf-0858-5c24-9b5e-baf1923d7e3d"
+			(reference "#PWR1202") (unit 1))))
+	)
+	(wire (pts (xy 325.12 101.6) (xy 292.1 101.6))
+		(stroke (width 0) (type default)) (uuid "b1a00005-0000-4000-8000-000000000007"))
+	(wire (pts (xy 325.12 104.14) (xy 292.1 104.14))
+		(stroke (width 0) (type default)) (uuid "b1a00005-0000-4000-8000-000000000008"))
+	(wire (pts (xy 325.12 106.68) (xy 292.1 106.68))
+		(stroke (width 0) (type default)) (uuid "b1a00005-0000-4000-8000-000000000009"))
+	(wire (pts (xy 325.12 109.22) (xy 292.1 109.22))
+		(stroke (width 0) (type default)) (uuid "b1a00005-0000-4000-8000-000000000010"))
+	(wire (pts (xy 325.12 111.76) (xy 292.1 111.76))
+		(stroke (width 0) (type default)) (uuid "b1a00005-0000-4000-8000-000000000011"))
+	(wire (pts (xy 325.12 114.3) (xy 292.1 114.3))
+		(stroke (width 0) (type default)) (uuid "b1a00005-0000-4000-8000-000000000012"))
+	(wire (pts (xy 279.4 147.32) (xy 292.1 147.32))
+		(stroke (width 0) (type default)) (uuid "b1a00005-0000-4000-8000-000000000013"))
+	(wire (pts (xy 292.1 152.4) (xy 292.1 147.32))
+		(stroke (width 0) (type default)) (uuid "b1a00005-0000-4000-8000-000000000014"))
+	(wire (pts (xy 292.1 160.02) (xy 292.1 165.1))
+		(stroke (width 0) (type default)) (uuid "b1a00005-0000-4000-8000-000000000015"))
+	(wire (pts (xy 304.8 152.4) (xy 304.8 147.32))
+		(stroke (width 0) (type default)) (uuid "b1a00005-0000-4000-8000-000000000016"))
+	(wire (pts (xy 304.8 160.02) (xy 304.8 165.1))
+		(stroke (width 0) (type default)) (uuid "b1a00005-0000-4000-8000-000000000017"))
+	(label "3V3" (at 292.1 101.6 0) (effects (font (size 1.27 1.27)) (justify right)) (uuid "b1a00005-0000-4000-8000-000000000018"))
+	(label "3V3" (at 292.1 147.32 0) (effects (font (size 1.27 1.27)) (justify left)) (uuid "b1a00005-0000-4000-8000-000000000019"))
+	(label "3V3" (at 304.8 147.32 0) (effects (font (size 1.27 1.27)) (justify left)) (uuid "b1a00005-0000-4000-8000-000000000020"))
+	(hierarchical_label "I2C_SDA" (shape bidirectional) (at 292.1 106.68 180) (effects (font (size 1.27 1.27)) (justify right)) (uuid "b1a00005-0000-4000-8000-000000000021"))
+	(hierarchical_label "I2C_SCL" (shape bidirectional) (at 292.1 109.22 180) (effects (font (size 1.27 1.27)) (justify right)) (uuid "b1a00005-0000-4000-8000-000000000022"))
+	(hierarchical_label "TOF_LPN" (shape input) (at 292.1 111.76 180) (effects (font (size 1.27 1.27)) (justify right)) (uuid "b1a00005-0000-4000-8000-000000000023"))
+	(hierarchical_label "TOF_INT" (shape output) (at 292.1 114.3 180) (effects (font (size 1.27 1.27)) (justify right)) (uuid "b1a00005-0000-4000-8000-000000000024"))
+	(hierarchical_label "3V3" (shape input) (at 279.4 147.32 180) (effects (font (size 1.27 1.27)) (justify right)) (uuid "b1a00005-0000-4000-8000-000000000025"))
+	(sheet_instances
+		(path "/" (page "5"))
+	)
+	(embedded_fonts no)
+)

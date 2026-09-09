@@ -1,0 +1,74 @@
+* BugBot VISION board - simulation model library (2026-09-02)
+* Same discipline as models.lib: no public ngspice models exist for any of
+* these parts, so each is a DC-behavioral subcircuit built from its datasheet
+* numbers. What they do NOT model: switching ripple, loop stability,
+* efficiency curves, or anything inside the IC.
+
+*----------------------------------------------------------------------
+* TPS63020 buck-boost (U1), TI SLVS916I.
+*   VIN/VINA 1.8-5.5 V, FB threshold 0.5 V. Switch limit I_SW is
+*   3500/4000/4500 mA (EC table) -- the "3 A" often quoted is not a datasheet
+*   parameter. The rating that applies to THIS rail is the features bullet,
+*   2 A output at VOUT = 3.3 V for VIN > 2.5 V, and TI Figure 2 gives the
+*   curve below that. This model enforces NO limit at all, so headroom must be
+*   checked outside it -- see the note in sim_vision_power.py section D.
+*   Regulates FB to 0.5 V through the REAL external divider, in buck OR
+*   boost, which is the whole reason this part is here.
+*   Input current from power balance at 90% (datasheet efficiency curves sit
+*   between 88 and 95% over this load range).
+* nodes: in gnd en out fb
+.subckt TPS63020 in gnd en out fb
+Bena ena gnd V = u(V(en,gnd)-1.2)*u(V(in,gnd)-1.8)
+Breg regv gnd V = V(ena) * min(max(1e4*(0.5 - V(fb,gnd)), 0), 5.5)
+Vosns regv rego DC 0
+S1   rego out ena gnd SWEN
+Bibat in gnd I = V(ena) * V(out,gnd)*abs(I(Vosns)) / (max(V(in,gnd),0.5)*0.90)
+Rbl  out gnd 10Meg
+.model SWEN SW (Ron=30m Roff=100Meg Vt=0.5 Vh=0.1)
+.ends
+
+*----------------------------------------------------------------------
+* TLV62569 buck (U2 core rail, and the A/B comparison for the 3.3 V rail).
+*   FB 0.6 V, 2 A, and CRITICALLY it is buck-only: at 100% duty the output
+*   can never exceed the input minus the high-side path drop. That ceiling is
+*   the entire question this simulation exists to answer, so it is modelled
+*   explicitly as min(regulated, Vin - Rpath*Iout).
+*   Rpath 0.19 ohm = 110 mOhm high-side FET (datasheet) + 78 mOhm inductor DCR
+*   (FNR3015S2R2MT).
+* nodes: in gnd en out fb
+.subckt TLV62569 in gnd en out fb
+Bena ena gnd V = u(V(en,gnd)-1.0)*u(V(in,gnd)-2.5)
+Breg regv gnd V = V(ena) * min( min(max(1e4*(0.6 - V(fb,gnd)), 0), 5.5),
++ max(V(in,gnd) - 0.19*abs(I(Vosns)), 0) )
+Vosns regv rego DC 0
+S1   rego out ena gnd SWEN
+Bibat in gnd I = V(ena) * V(out,gnd)*abs(I(Vosns)) / (max(V(in,gnd),0.5)*0.90)
+Rbl  out gnd 10Meg
+.model SWEN SW (Ron=5m Roff=100Meg Vt=0.5 Vh=0.1)
+.ends
+
+*----------------------------------------------------------------------
+* AP2127K-ADJ LDO (U5 2.8 V, U6 1.3 V), Diodes DS36478.
+*   VFB 0.8 V, 300 mA, dropout 300 mV at 300 mA -> 1.0 ohm equivalent.
+*   Being an LDO it is also ceiling-limited by its input, same as the buck.
+* nodes: in gnd en out fb
+*   ⚠ Bref is referenced to gnd, so WITHOUT the Bin source below the regulator
+*   would conjure its output current out of ground and draw NOTHING from its
+*   input. An adversarial review of the first run caught exactly that: the two
+*   camera LDOs showed I(in) = 0.0 mA while their loads pulled 150 mA, which
+*   under-counted the 3.3 V rail by ~17% and flattered every sweep.
+*   An LDO conserves CURRENT, not power: Iin = Iout + Iq (Iq 60 uA typ).
+*   THE SAME DEFECT IS IN AP2112K33 IN models.lib, so the Motion board's
+*   power-tree results are affected too.
+.subckt AP2127KADJ in gnd en out fb
+Bref ref gnd V = u(V(en,gnd)-1.2)*u(V(in,gnd)-2.5) *
++ min( min(max(1e4*(0.8 - V(fb,gnd)), 0), 5.5),
++ max(V(in,gnd) - 1.0*min(abs(I(Vsns)),0.3), 0) )
+Vsns ref out DC 0
+* Fin, not a B-source: abs(I(...)) inside a behavioural source with a u() step
+* aborts transient analysis. A linear current-controlled current source is the
+* same physics and converges.
+Fin  in gnd Vsns 1
+Iq   in gnd DC 60u
+Rbl  out gnd 10Meg
+.ends

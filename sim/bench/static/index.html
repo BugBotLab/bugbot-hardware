@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BugBot Bench</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#14171c; --panel:#1c2027; --panel2:#232830; --line:#2e353f; --ink:#e6e9ee; --ink2:#9aa3b0; --ink3:#66707d;
+  --accent:#f2b134; --ok:#3fbf7f; --warn:#f2b134; --bad:#e5484d; --wire:#2b2f36;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace; --sans:"IBM Plex Sans",system-ui,Segoe UI,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:13px/1.45 var(--sans)}
+#app{display:grid;grid-template-rows:auto 1fr;grid-template-columns:1fr 300px;height:100%}
+header{grid-column:1/3;display:flex;align-items:center;gap:14px;padding:8px 14px;background:var(--panel);border-bottom:1px solid var(--line)}
+header h1{font-size:14px;font-weight:600;margin:0;letter-spacing:.02em}
+header h1 small{color:var(--ink3);font-weight:400;margin-left:8px}
+select,button{font:inherit;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:5px 9px}
+button{cursor:pointer}
+button:hover{border-color:var(--ink3)}
+button.on{background:#2a3b2f;border-color:var(--ok);color:#c9f2da}
+#sheet{min-width:260px}
+#sheet optgroup{color:var(--ink3);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+#sheet option{color:var(--ink);text-transform:none;letter-spacing:0;font-size:13px}
+#stage{position:relative;overflow:hidden;background:#0f1114}
+#stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab}
+#stage canvas.grabbing{cursor:grabbing}
+#tip{position:absolute;pointer-events:none;background:#000c;border:1px solid var(--line);padding:6px 8px;border-radius:6px;font:12px var(--mono);color:var(--ink);display:none;white-space:pre;z-index:5}
+#legend{position:absolute;left:10px;bottom:10px;font:11px var(--mono);color:var(--ink2);background:#000a;padding:6px 8px;border-radius:6px;pointer-events:none}
+#status{position:absolute;right:10px;top:10px;font:12px var(--mono);color:var(--ink2);background:#000a;padding:6px 10px;border-radius:6px}
+#status.busy{color:var(--accent)}
+aside{background:var(--panel);border-left:1px solid var(--line);overflow:auto;padding:12px;display:flex;flex-direction:column;gap:14px}
+aside h2{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);margin:0 0 6px;font-weight:600}
+.ro{display:grid;grid-template-columns:1fr auto;gap:3px 10px;font-family:var(--mono);font-size:12px}
+.ro span:nth-child(2){text-align:right;font-variant-numeric:tabular-nums}
+.ro .lo{color:var(--bad)} .ro .hi{color:var(--ok)}
+.ctl{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ctl button{font-size:12px;text-align:left}
+.ctl .wide{grid-column:1/3}
+.motors{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.motors button{padding:6px 4px;text-align:center;font-family:var(--mono);font-size:11px}
+.motors button.fwd{border-color:var(--ok);color:#c9f2da}
+.motors button.rev{border-color:#5aa2ff;color:#cfe3ff}
+.motors button.stall{border-color:var(--bad);color:#ffd0d2}
+input[type=range]{width:100%}
+.note{color:var(--ink3);font-size:11px}
+.pl{display:flex;gap:6px;align-items:center}
+.pl input{flex:1}
+#chart{width:100%;height:120px;background:#0f1114;border:1px solid var(--line);border-radius:6px}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <h1>BugBot Bench<small>live ngspice on the real schematics</small></h1>
+  <label>Activity <select id="activity"></select></label>
+  <label>Sheet <select id="sheet"></select></label>
+</header>
+<div id="stage">
+  <canvas id="cv"></canvas>
+  <div id="tip"></div>
+  <div id="status">idle</div>
+  <div id="legend">colour = node voltage (grey 0 V, green +, red −)   dots = current, speed ∝ A   click SW3 (Vision) / J1 USB / J2 cell / motors / RT1</div>
+</div>
+<aside>
+  <div>
+    <h2>Controls</h2>
+    <div class="ctl">
+      <button id="bSW">SW3 power</button>
+      <button id="bUSB">J1 USB 5 V</button>
+      <button id="bNTC" class="wide">RT1 NTC: 25 °C</button>
+      <div class="wide pl"><span>J2 cell</span><input type="range" id="vbat" min="2.8" max="4.2" step="0.1"><b id="vbatv">3.7 V</b></div>
+      <div class="wide pl"><span>servos</span><input type="range" id="servo" min="0" max="1.0" step="0.1"><b id="servov">0.0 A</b></div>
+      <div class="wide pl"><span>motor</span><select id="mtype"></select></div>
+    </div>
+  </div>
+  <div>
+    <h2>Motors (click to cycle: off → fwd → rev → stall)</h2>
+    <div class="motors" id="motors"></div>
+  </div>
+  <div>
+    <h2>Readouts</h2>
+    <div class="ro" id="ro"></div>
+  </div>
+  <div id="play" hidden>
+    <h2>Mission playback</h2>
+    <div class="pl"><button id="pp">▶</button><input type="range" id="tslider" min="0" max="1000" value="0"><b id="tv">0 ms</b></div>
+    <canvas id="chart"></canvas>
+    <div class="note" id="mcu"></div>
+  </div>
+  <div class="note" id="info"></div>
+</aside>
+</div>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const cv = $('#cv'), ctx = cv.getContext('2d');
+let G = null, MIS = {}, sheets = [], cur = 0, RES = null, IMG = {}, busy = false;
+let state = null;
+let view = {x: 0, y: 0, k: 2.0};
+let play = {on: false, t: 0, m: null, raf: 0};
+let t0 = performance.now();
+
+// ---------------------------------------------------------- activities
+const ACT = [
+  ['Idle on battery', {sw:1, vbus:0, vbat:3.7, motors:{}}],
+  ['Everything off', {sw:0, vbus:0, vbat:3.7, motors:{}}],
+  ['USB charging, switch off', {sw:0, vbus:5, vbat:3.7, motors:{}}],
+  ['USB plugged, running', {sw:1, vbus:5, vbat:3.7, motors:{}}],
+  ['Driving forward', {sw:1, vbus:0, vbat:3.7, motors:{U6:'fwd',U7:'fwd',U8:'fwd',U9:'fwd'}}],
+  ['Turning (right side reversed)', {sw:1, vbus:0, vbat:3.7, motors:{U6:'fwd',U7:'fwd',U8:'rev',U9:'rev'}}],
+  ['All four stalled + HK-5320 servos stalled', {sw:1, vbus:0, vbat:3.7, servo_a:0.15, motors:{U6:'stall',U7:'stall',U8:'stall',U9:'stall'}}],
+  ['Flat cell 3.0 V, driving', {sw:1, vbus:0, vbat:3.0, motors:{U6:'fwd',U7:'fwd',U8:'fwd',U9:'fwd'}}],
+  ['Hot cell on USB (NTC 55 °C)', {sw:0, vbus:5, vbat:3.7, rt1:2300, motors:{}}],
+  ['Cold cell on USB (NTC −5 °C)', {sw:0, vbus:5, vbat:3.7, rt1:45000, motors:{}}],
+];
+const NTC = [[10000,'25 °C'],[2300,'55 °C hot'],[45000,'−5 °C cold']];
+
+async function boot() {
+  G = await (await fetch('/api/geometry')).json();
+  MIS = await (await fetch('/api/missions')).json();
+  state = JSON.parse(JSON.stringify(G.default));
+  for (const bd of ['motion', 'vision', 'odometry']) for (const sh of G.boards[bd].sheets) {
+    sh.board = bd; sh.values = G.boards[bd].values; sh.prefix = G.boards[bd].prefix; sheets.push(sh);
+    if (sh.svg) { const im = new Image(); im.src = sh.svg; IMG[sh.svg] = im; im.onload = draw; }
+    indexSheet(sh);
+  }
+  // one dropdown, a group per board (was a row of 15 buttons)
+  const sel = $('#sheet');
+  let grp = null, last = '';
+  sheets.forEach((sh, i) => {
+    if (sh.board !== last) { grp = document.createElement('optgroup'); grp.label = sh.board; sel.appendChild(grp); last = sh.board; }
+    const o = document.createElement('option'); o.value = i;
+    o.textContent = sh.name === 'root' ? sh.board + ' root' : sh.name.replace(/^\d+ /, '');
+    grp.appendChild(o);
+  });
+  sel.onchange = () => { cur = +sel.value; fit(); syncTabs(); };
+  const act = $('#activity');
+  ACT.forEach(([n], i) => { const o = document.createElement('option'); o.value = 'a' + i; o.textContent = n; act.appendChild(o); });
+  for (const m of Object.keys(MIS)) { const o = document.createElement('option'); o.value = 'm' + m; o.textContent = 'Mission: ' + m + ' (transient)'; act.appendChild(o); }
+  act.onchange = () => selectActivity(act.value);
+  const mt = $('#mtype');
+  for (const k of Object.keys(G.motor_types)) { const o = document.createElement('option'); o.value = k; o.textContent = k; mt.appendChild(o); }
+  mt.value = state.motor; mt.onchange = () => { state.motor = mt.value; resolve(); };
+  $('#bSW').onclick = () => { state.sw = state.sw ? 0 : 1; resolve(); };
+  $('#bUSB').onclick = () => { state.vbus = state.vbus ? 0 : 5; resolve(); };
+  $('#bNTC').onclick = () => { const i = NTC.findIndex(n => n[0] == state.rt1); state.rt1 = NTC[(i + 1) % 3][0]; resolve(); };
+  $('#vbat').oninput = e => { state.vbat = +e.target.value; $('#vbatv').textContent = state.vbat.toFixed(1) + ' V'; };
+  $('#vbat').onchange = () => resolve();
+  $('#servo').oninput = e => { state.servo_a = +e.target.value; $('#servov').textContent = state.servo_a.toFixed(1) + ' A'; };
+  $('#servo').onchange = () => resolve();
+  const ms = $('#motors');
+  for (const u of ['U6', 'U7', 'U8', 'U9']) { const b = document.createElement('button'); b.id = 'm' + u; b.onclick = () => cycleMotor(u); ms.appendChild(b); }
+  $('#pp').onclick = () => { play.on = !play.on; $('#pp').textContent = play.on ? '❚❚' : '▶'; };
+  $('#tslider').oninput = e => { play.t = +e.target.value / 1000 * play.m.t[play.m.t.length - 1]; play.on = false; $('#pp').textContent = '▶'; };
+  cur = sheets.findIndex(s => s.board === 'motion' && s.name.startsWith('02'));
+  if (cur < 0) cur = 0;
+  new ResizeObserver(() => { fitCanvas(); fit(); }).observe($('#stage'));
+  fitCanvas(); fit(); syncTabs(); syncControls();
+  await resolve();
+  requestAnimationFrame(frame);
+}
+
+function selectActivity(v) {
+  if (v[0] === 'a') {
+    play.m = null; $('#play').hidden = true;
+    const s = ACT[+v.slice(1)][1];
+    state = Object.assign(JSON.parse(JSON.stringify(G.default)), JSON.parse(JSON.stringify(s)));
+    state.motors = Object.assign({U6:'off',U7:'off',U8:'off',U9:'off'}, s.motors || {});
+    state.motor = $('#mtype').value;
+    resolve();
+  } else {
+    const m = MIS[v.slice(1)];
+    play.m = m; play.t = 0; play.on = true; $('#pp').textContent = '❚❚'; $('#play').hidden = false;
+    state = Object.assign(JSON.parse(JSON.stringify(G.default)), {sw: 1, vbus: m.name === 'usb' ? 5 : 0, motors: {U6:'fwd',U7:'fwd',U8:'fwd',U9:'fwd'}});
+    $('#mcu').textContent = 'MCU writes: ' + m.mcu.map(([t, w]) => (t * 1e3).toFixed(0) + ' ms ' + Object.entries(w).map(([u, [d, vs]]) => u + (d > 0 ? ' fwd' : d < 0 ? ' rev' : ' off')).join(', ')).join(' | ');
+    resolve();
+  }
+}
+
+function cycleMotor(u) {
+  const seq = ['off', 'fwd', 'rev', 'stall'];
+  state.motors[u] = seq[(seq.indexOf(state.motors[u]) + 1) % 4];
+  resolve();
+}
+
+// -------------------------------------------------------------- solving
+let pending = null;
+async function resolve() {
+  syncControls();
+  if (busy) { pending = JSON.parse(JSON.stringify(state)); return; }
+  busy = true; $('#status').textContent = 'solving …'; $('#status').className = 'busy';
+  const t = performance.now();
+  try {
+    const r = await (await fetch('/api/solve', {method: 'POST', body: JSON.stringify(state)})).json();
+    if (r.error) { $('#status').textContent = 'error: ' + r.error; }
+    else { RES = r; $('#status').textContent = ((performance.now() - t) / 1000).toFixed(1) + ' s ' + (r.via_tran ? '(ramped transient)' : '(.op)') + (r.warning ? ' ⚠' : ''); flows(); }
+  } catch (e) { $('#status').textContent = 'server not reachable'; }
+  $('#status').className = '';
+  busy = false;
+  if (pending) { const p = pending; pending = null; state = p; resolve(); }
+  syncReadouts();
+}
+
+function syncControls() {
+  $('#bSW').className = state.sw ? 'on' : ''; $('#bSW').textContent = 'SW3 power: ' + (state.sw ? 'ON' : 'OFF');
+  $('#bUSB').className = state.vbus ? 'on' : ''; $('#bUSB').textContent = 'J1 USB: ' + (state.vbus ? '5 V plugged' : 'unplugged');
+  const n = NTC.find(x => x[0] == state.rt1); $('#bNTC').textContent = 'RT1 NTC: ' + (n ? n[1] : state.rt1 + ' Ω');
+  $('#vbat').value = state.vbat; $('#vbatv').textContent = (+state.vbat).toFixed(1) + ' V';
+  $('#servo').value = state.servo_a; $('#servov').textContent = (+state.servo_a).toFixed(1) + ' A';
+  for (const u of ['U6', 'U7', 'U8', 'U9']) { const b = $('#m' + u); b.className = state.motors[u]; b.textContent = u + ' ' + state.motors[u]; }
+}
+function syncTabs() { $('#sheet').value = cur; }
+
+function fmtV(v) { return (Math.abs(v) < 1e-3 ? '0.000' : v.toFixed(3)) + ' V'; }
+function fmtA(a) { const x = Math.abs(a); return (x >= 1 ? a.toFixed(2) + ' A' : x >= 1e-3 ? (a * 1e3).toFixed(1) + ' mA' : (a * 1e6).toFixed(0) + ' µA'); }
+function syncReadouts() {
+  if (!RES) return;
+  const r = RES.readouts, el = $('#ro'); el.innerHTML = '';
+  const rows = [['VSYS', r.VSYS, 'V'], ['VSYS_SW', r.VSYS_SW, 'V'], ['VMOT', r.VMOT, 'V'], ['3V3 (Motion)', r['3V3_M'], 'V'], ['3V3 at module', r.MOD_3V3, 'V'],
+    ['MOT_INT (nFAULT)', r.MOT_INT_V, 'V'], ['VBAT_SENSE', r.VBAT_SENSE_M, 'V'], ['cell current', r.I_CELL, 'A'], ['USB current', r.I_USB, 'A']];
+  for (const u of ['U6', 'U7', 'U8', 'U9']) rows.push([u + ' motor', r['I_' + u], 'A', r['RPM_' + u]]);
+  for (const [n, v, unit, rpm] of rows) {
+    const a = document.createElement('span'); a.textContent = n; const b = document.createElement('span');
+    b.textContent = (unit === 'V' ? fmtV(v) : fmtA(v)) + (rpm !== undefined ? '  ' + Math.round(rpm) + ' rpm' : '');
+    if (n === '3V3 at module' && v < 3.0) b.className = 'lo';
+    if (n.startsWith('MOT_INT') && v < 0.5) b.className = 'lo';
+    el.appendChild(a); el.appendChild(b);
+  }
+}
+
+// ---------------------------------------------------- sheet indexing
+function indexSheet(sh) {
+  // wires per net, and which pins touch which wire ends
+  sh.byNet = {};
+  sh.wires.forEach((w, i) => { w.i = i; w.len = Math.hypot(w.pts[1][0] - w.pts[0][0], w.pts[1][1] - w.pts[0][1]); (sh.byNet[w.net] = sh.byNet[w.net] || []).push(w); });
+  sh.pinAt = {};
+  for (const p of sh.pins) sh.pinAt[key(p.x, p.y)] = p;
+  sh.symByRef = {}; for (const s of sh.symbols) sh.symByRef[s.ref] = s;
+}
+function key(x, y) { return Math.round(x * 100) + ',' + Math.round(y * 100); }
+function near(a, b) { return Math.abs(a[0] - b[0]) < 0.03 && Math.abs(a[1] - b[1]) < 0.03; }
+function onSeg(p, a, b) {
+  const t = 0.03;
+  if (Math.abs(a[1] - b[1]) < t && Math.abs(p[1] - a[1]) < t && p[0] >= Math.min(a[0], b[0]) - t && p[0] <= Math.max(a[0], b[0]) + t) return true;
+  if (Math.abs(a[0] - b[0]) < t && Math.abs(p[0] - a[0]) < t && p[1] >= Math.min(a[1], b[1]) - t && p[1] <= Math.max(a[1], b[1]) + t) return true;
+  return false;
+}
+
+// current for a pin of a two-terminal element: + means flowing INTO that pin from the wire
+function pinCurrent(sh, p) {
+  if (!RES) return null;
+  const pc = RES.pincur && RES.pincur[sh.prefix][p.ref];
+  if (pc && pc[p.num] !== undefined) return pc[p.num];
+  const I = RES.currents[sh.prefix][p.ref];
+  if (I === undefined) return null;
+  const kind = p.ref.replace(/[0-9]+$/, '');
+  if (['R', 'RSH', 'RT', 'F', 'C', 'CB', 'L'].includes(kind)) return p.num === '1' ? I : p.num === '2' ? -I : null;
+  if (kind === 'Q') return p.name === 'D' || p.num === '3' ? I : (p.name === 'S' || p.num === '2') ? -I : null;   // Id: drain -> source for a PMOS is negative
+  return null;
+}
+
+// per-wire flow: magnitude + direction (+1 = from pts[0] to pts[1]), propagated along each net from the pins that know their current
+function flows() {
+  for (const sh of sheets) {
+    for (const w of sh.wires) { w.I = 0; w.dir = 0; }
+    for (const [net, ws] of Object.entries(sh.byNet)) {
+      if (!net || net === 'null') continue;
+      const seeds = [], dead = new Set();
+      for (const w of ws) for (const e of [0, 1]) {
+        const p = sh.pinAt[key(w.pts[e][0], w.pts[e][1])];
+        if (!p) continue;
+        const I = pinCurrent(sh, p);
+        if (I === null) continue;
+        if (Math.abs(I) < 1e-7) { dead.add(w.i); continue; }      // a cap at DC: its stub carries nothing
+        // I > 0: current flows from the wire into the pin, i.e. along the wire toward end e
+        seeds.push({w, e, I});
+      }
+      if (!seeds.length) continue;
+      const big = seeds.reduce((a, b) => Math.abs(b.I) > Math.abs(a.I) ? b : a);
+      // BFS out from the strongest seed
+      const q = [];
+      big.w.I = Math.abs(big.I); big.w.dir = big.I > 0 ? (big.e === 1 ? 1 : -1) : (big.e === 1 ? -1 : 1);
+      q.push(big.w);
+      const seen = new Set([big.w.i, ...dead]);
+      while (q.length) {
+        const a = q.shift();
+        // the "downstream" end of a is where the current exits it
+        const tail = a.dir > 0 ? a.pts[1] : a.pts[0], head = a.dir > 0 ? a.pts[0] : a.pts[1];
+        for (const b of ws) {
+          if (seen.has(b.i)) continue;
+          let j = -1;
+          if (near(b.pts[0], tail) || onSeg(b.pts[0], a.pts[0], a.pts[1])) j = 0; else if (near(b.pts[1], tail) || onSeg(b.pts[1], a.pts[0], a.pts[1])) j = 1;
+          else if (onSeg(tail, b.pts[0], b.pts[1])) j = -2;
+          if (j === -1) continue;
+          seen.add(b.i); b.I = a.I;
+          if (j === 0) b.dir = 1; else if (j === 1) b.dir = -1; else b.dir = a.dir;
+          q.push(b);
+        }
+      }
+      // a pin's own current wins on the wire that touches it
+      for (const s of seeds) { s.w.I = Math.abs(s.I); s.w.dir = s.I > 0 ? (s.e === 1 ? 1 : -1) : (s.e === 1 ? -1 : 1); }
+    }
+  }
+}
+
+// ----------------------------------------------------------- drawing
+function fitCanvas() {
+  const r = $('#stage').getBoundingClientRect();
+  cv.width = Math.round(r.width * devicePixelRatio); cv.height = Math.round(r.height * devicePixelRatio);
+}
+function fit() {
+  const sh = sheets[cur]; if (!sh) return;
+  const W = cv.width / devicePixelRatio, H = cv.height / devicePixelRatio;
+  const b = contentBox(sh);
+  view.k = Math.min(W / (b.w + 20), H / (b.h + 20));
+  view.x = (W - b.w * view.k) / 2 - b.x * view.k; view.y = (H - b.h * view.k) / 2 - b.y * view.k;
+}
+function contentBox(sh) {
+  if (sh.box) return sh.box;
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (const w of sh.wires) for (const p of w.pts) { x0 = Math.min(x0, p[0]); y0 = Math.min(y0, p[1]); x1 = Math.max(x1, p[0]); y1 = Math.max(y1, p[1]); }
+  for (const s of sh.symbols) { x0 = Math.min(x0, s.bbox[0]); y0 = Math.min(y0, s.bbox[1]); x1 = Math.max(x1, s.bbox[2]); y1 = Math.max(y1, s.bbox[3]); }
+  if (x0 > x1) { x0 = 0; y0 = 0; x1 = sh.size[0]; y1 = sh.size[1]; }
+  return sh.box = {x: x0 - 10, y: y0 - 10, w: x1 - x0 + 20, h: y1 - y0 + 20};
+}
+function nodeV(sh, net) {
+  if (!RES || !net) return null;
+  const node = sh.spice[net]; if (node === undefined) return null;
+  if (node === '0') return 0;
+  if (play.m) { const k = Object.keys(play.m.node_of).find(k => play.m.node_of[k] === node); if (k && play.m.series[k]) return sampleSeries(play.m, k, play.t); }
+  const v = RES.nodes[node]; return v === undefined ? null : v;
+}
+function sampleSeries(m, k, t) {
+  const T = m.t, S = m.series[k]; let lo = 0, hi = T.length - 1;
+  while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (T[mid] <= t) lo = mid; else hi = mid; }
+  const f = (t - T[lo]) / Math.max(1e-9, T[hi] - T[lo]); return S[lo] + (S[hi] - S[lo]) * Math.min(1, Math.max(0, f));
+}
+function vColor(v) {
+  if (v === null) return '#4a5160';
+  const a = Math.min(1, Math.abs(v) / 5);
+  if (v >= 0) return `rgb(${Math.round(90 - 60 * a)},${Math.round(110 + 130 * a)},${Math.round(90 - 40 * a)})`;
+  return `rgb(${Math.round(110 + 130 * a)},${Math.round(90 - 60 * a)},${Math.round(90 - 40 * a)})`;
+}
+function frame(now) {
+  if (play.m && play.on) { play.t += (now - t0) / 1000 * 0.04; const tend = play.m.t[play.m.t.length - 1]; if (play.t > tend) play.t = 0; $('#tslider').value = Math.round(play.t / tend * 1000); $('#tv').textContent = (play.t * 1e3).toFixed(1) + ' ms'; drawChart(); }
+  t0 = now; draw(now); requestAnimationFrame(frame);
+}
+function draw(now) {
+  now = now || performance.now();
+  const sh = sheets[cur]; if (!sh) return;
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  ctx.fillStyle = '#0f1114'; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.translate(view.x, view.y); ctx.scale(view.k, view.k);
+  const im = IMG[sh.svg];
+  if (im && im.complete && im.naturalWidth) {
+    ctx.globalAlpha = 0.9;
+    // KiCad's SVG is drawn on a white page: draw it inverted for the dark bench
+    ctx.filter = 'invert(1) hue-rotate(180deg) brightness(0.85)';
+    ctx.drawImage(im, 0, 0, sh.size[0], sh.size[1]);
+    ctx.filter = 'none'; ctx.globalAlpha = 1;
+  }
+  // wires
+  ctx.lineCap = 'round';
+  for (const w of sh.wires) {
+    const v = nodeV(sh, w.net);
+    ctx.strokeStyle = vColor(v); ctx.lineWidth = 0.45;
+    ctx.beginPath(); ctx.moveTo(w.pts[0][0], w.pts[0][1]); ctx.lineTo(w.pts[1][0], w.pts[1][1]); ctx.stroke();
+  }
+  // current dots
+  const speed = 6;   // mm per second per "unit"
+  ctx.fillStyle = '#ffd54a';
+  for (const w of sh.wires) {
+    if (!w.I || w.I < 2e-5) continue;
+    const pitch = 2.0, n = Math.max(1, Math.floor(w.len / pitch));
+    const vel = speed * Math.min(1, Math.log10(1 + w.I * 200) / 2.3);   // 20 uA -> slow, 1 A -> full
+    const off = ((now / 1000 * vel * w.dir) % pitch + pitch) % pitch;
+    const dx = (w.pts[1][0] - w.pts[0][0]) / w.len, dy = (w.pts[1][1] - w.pts[0][1]) / w.len;
+    for (let i = 0; i <= n; i++) {
+      const s = i * pitch + off; if (s > w.len) continue;
+      ctx.beginPath(); ctx.arc(w.pts[0][0] + dx * s, w.pts[0][1] + dy * s, 0.32 + 0.25 * Math.min(1, w.I), 0, 6.283); ctx.fill();
+    }
+  }
+  // junctions
+  for (const j of sh.junctions) { const w = sh.wires.find(w => onSeg(j, w.pts[0], w.pts[1])); ctx.fillStyle = vColor(nodeV(sh, w ? w.net : null)); ctx.beginPath(); ctx.arc(j[0], j[1], 0.55, 0, 6.283); ctx.fill(); }
+  // clickable parts + motor discs
+  for (const s of sh.symbols) {
+    const role = clickRole(sh, s.ref); if (!role) continue;
+    const b = s.bbox;
+    ctx.strokeStyle = role.on ? 'rgba(63,191,127,0.9)' : 'rgba(242,177,52,0.6)'; ctx.lineWidth = 0.35; ctx.setLineDash([1, 1]);
+    ctx.strokeRect(b[0], b[1], b[2] - b[0], b[3] - b[1]); ctx.setLineDash([]);
+    ctx.font = '2px "IBM Plex Mono"'; ctx.fillStyle = role.on ? '#3fbf7f' : '#f2b134'; ctx.textAlign = 'left';
+    ctx.fillText(role.label, b[0], b[1] - 0.6);
+    if (role.motor) drawMotor(s, role);
+  }
+  // pin voltages for the ICs on hover are in the tooltip; draw a pin dot where the wire ends on nothing (unconnected)
+}
+function drawMotor(s, role) {
+  const cx = (s.bbox[0] + s.bbox[2]) / 2, cy = s.bbox[3] + 5, r = 3.2;
+  const rpm = RES ? RES.readouts['RPM_' + role.drv] || 0 : 0;
+  const ang = (performance.now() / 1000) * rpm / 60 * 6.283 * 0.02;   // slowed x50 so the eye can follow
+  ctx.strokeStyle = '#8a93a2'; ctx.lineWidth = 0.4; ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.283); ctx.stroke();
+  ctx.strokeStyle = rpm ? '#ffd54a' : '#4a5160'; ctx.lineWidth = 0.6;
+  for (let k = 0; k < 3; k++) { const a = ang + k * 2.094; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + r * 0.9 * Math.cos(a), cy + r * 0.9 * Math.sin(a)); ctx.stroke(); }
+  ctx.font = '1.8px "IBM Plex Mono"'; ctx.fillStyle = '#cfd5de'; ctx.textAlign = 'center';
+  ctx.fillText(Math.round(rpm) + ' rpm  ' + fmtA(RES ? RES.readouts['I_' + role.drv] || 0 : 0), cx, cy + r + 2.4);
+}
+const MOTOR_OF = {J3: 'U6', J4: 'U7', J5: 'U8', J6: 'U9', U6: 'U6', U7: 'U7', U8: 'U8', U9: 'U9'};
+function clickRole(sh, ref) {
+  // the slide switch lives on the Vision board since the 2026-09-07 rework (SW3, grounds SW_ON over the stack)
+  if (sh.board === 'vision' && ref === 'SW3') return {label: 'SW3 ' + (state.sw ? 'ON' : 'OFF') + ' (click)', on: !!state.sw, act: () => { state.sw = state.sw ? 0 : 1; resolve(); }};
+  if (sh.board !== 'motion') return null;
+  if (ref === 'J1') return {label: 'USB ' + (state.vbus ? '5 V' : 'unplugged') + ' (click)', on: !!state.vbus, act: () => { state.vbus = state.vbus ? 0 : 5; resolve(); }};
+  if (ref === 'J2') return {label: 'cell ' + (+state.vbat).toFixed(1) + ' V (click)', on: true, act: () => { const seq = [4.2, 3.7, 3.3, 3.0, 2.8]; state.vbat = seq[(seq.indexOf(+state.vbat) + 1) % seq.length]; resolve(); }};
+  if (ref === 'RT1') return {label: 'NTC ' + (NTC.find(n => n[0] == state.rt1) || ['', state.rt1])[1] + ' (click)', on: true, act: () => $('#bNTC').onclick()};
+  if (MOTOR_OF[ref]) { const u = MOTOR_OF[ref]; return {label: u + ' motor ' + state.motors[u] + ' (click)', on: state.motors[u] !== 'off', motor: ref.startsWith('J'), drv: u, act: () => cycleMotor(u)}; }
+  return null;
+}
+
+// ---------------------------------------------------------- pointer
+let drag = null;
+function toSheet(e) { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left - view.x) / view.k, (e.clientY - r.top - view.y) / view.k]; }
+cv.addEventListener('mousedown', e => { drag = {x: e.clientX, y: e.clientY, vx: view.x, vy: view.y, moved: false}; cv.classList.add('grabbing'); });
+window.addEventListener('mousemove', e => {
+  if (drag) { view.x = drag.vx + e.clientX - drag.x; view.y = drag.vy + e.clientY - drag.y; if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 3) drag.moved = true; return; }
+  hover(e);
+});
+window.addEventListener('mouseup', e => {
+  if (drag && !drag.moved) click(e);
+  drag = null; cv.classList.remove('grabbing');
+});
+cv.addEventListener('wheel', e => {
+  e.preventDefault(); const [sx, sy] = toSheet(e); const f = Math.exp(-e.deltaY * 0.0015);
+  view.k *= f; const r = cv.getBoundingClientRect(); view.x = e.clientX - r.left - sx * view.k; view.y = e.clientY - r.top - sy * view.k;
+}, {passive: false});
+function hitSymbol(sh, p) { return sh.symbols.find(s => p[0] >= s.bbox[0] && p[0] <= s.bbox[2] && p[1] >= s.bbox[1] && p[1] <= s.bbox[3]); }
+function click(e) {
+  const sh = sheets[cur], p = toSheet(e); const s = hitSymbol(sh, p); if (!s) return;
+  if (s.ref.startsWith('sheet:')) { const i = sheets.findIndex(x => x.board === sh.board && x.name === s.ref.slice(6)); if (i >= 0) { cur = i; fit(); syncTabs(); } return; }
+  const role = clickRole(sh, s.ref); if (role) { play.m = null; $('#play').hidden = true; role.act(); }
+}
+function hover(e) {
+  const sh = sheets[cur]; if (!sh) return; const p = toSheet(e); const tip = $('#tip');
+  let text = null;
+  const s = hitSymbol(sh, p);
+  if (s) {
+    const I = RES ? RES.currents[sh.prefix][s.ref] : undefined;
+    text = s.ref + '  ' + (sh.values[s.ref] || s.value || '');
+    if (I !== undefined) text += '\nI = ' + fmtA(I);
+    const pins = sh.pins.filter(q => q.ref === s.ref);
+    for (const q of pins.slice(0, 16)) { const v = nodeV(sh, q.net); text += '\n ' + q.num.padStart(3) + ' ' + (q.name || '').padEnd(8) + ' ' + (q.net || '-').replace(/^.*\//, '') + (v === null ? '' : '  ' + fmtV(v)); }
+    if (pins.length > 16) text += '\n …';
+  } else {
+    const w = sh.wires.find(w => distSeg(p, w.pts[0], w.pts[1]) < 0.8);
+    if (w) { const v = nodeV(sh, w.net); text = (w.net || '?') + (v === null ? '' : '\n' + fmtV(v)) + (w.I ? '\n' + fmtA(w.I) : ''); }
+  }
+  if (!text) { tip.style.display = 'none'; return; }
+  const r = $('#stage').getBoundingClientRect();
+  tip.textContent = text; tip.style.display = 'block'; tip.style.left = (e.clientX - r.left + 14) + 'px'; tip.style.top = (e.clientY - r.top + 14) + 'px';
+}
+function distSeg(p, a, b) {
+  const dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy || 1e-9;
+  let t = ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2; t = Math.max(0, Math.min(1, t));
+  return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy);
+}
+
+// ---------------------------------------------------------- chart (playback)
+function drawChart() {
+  const c = $('#chart'), g = c.getContext('2d'); const m = play.m; if (!m) return;
+  const W = c.width = c.clientWidth * devicePixelRatio, H = c.height = c.clientHeight * devicePixelRatio;
+  g.fillStyle = '#0f1114'; g.fillRect(0, 0, W, H);
+  const keys = [['VMOT', '#f2b134'], ['3V3', '#3fbf7f'], ['I_U8', '#5aa2ff'], ['MOT_INT', '#e5484d']];
+  const tend = m.t[m.t.length - 1];
+  for (const [k, col] of keys) {
+    const S = m.series[k]; if (!S) continue; const mx = Math.max(...S.map(Math.abs)) || 1;
+    g.strokeStyle = col; g.lineWidth = 1.2 * devicePixelRatio; g.beginPath();
+    S.forEach((v, i) => { const x = m.t[i] / tend * W, y = H - (v / mx * 0.45 + 0.5) * H; i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
+  }
+  g.strokeStyle = '#fff8'; g.beginPath(); const x = play.t / tend * W; g.moveTo(x, 0); g.lineTo(x, H); g.stroke();
+  g.font = (10 * devicePixelRatio) + 'px IBM Plex Mono'; let xx = 4 * devicePixelRatio;
+  for (const [k, col] of keys) { g.fillStyle = col; g.fillText(k, xx, 11 * devicePixelRatio); xx += g.measureText(k).width + 10 * devicePixelRatio; }
+}
+
+boot();
+</script>
+</body>
+</html>

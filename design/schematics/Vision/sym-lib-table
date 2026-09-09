@@ -1,0 +1,4 @@
+(sym_lib_table
+	(version 7)
+	(lib (name "BugBot")(type "KiCad")(uri "${KIPRJMOD}/BugBot.kicad_sym")(options "")(descr "BugBot project symbols, generated from datasheet-verified pin tables"))
+)

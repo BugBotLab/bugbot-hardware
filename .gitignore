@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+sim/out/
+sim/bench/static/**/cache/
+*.kicad_pcb
+*.kicad_prl
+*-backups/
+*.pre_*
+*.bak
+*.gbr
+*.drl
+*.zip

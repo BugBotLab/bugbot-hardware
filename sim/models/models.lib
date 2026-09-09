@@ -1,0 +1,87 @@
+* BugBot Main board - simulation model library (2026-08-28)
+* Every model is fitted to vendor-published data or built behaviorally
+* from the datasheet. Conditions use u() unit-steps for ngspice safety.
+
+*----------------------------------------------------------------------
+* SI2333 P-channel MOSFET (Q1 Q2 Q3), LCSC C344008
+* ngspice native VDMOS fitted to Vishay S13-2055 (Si2333DDS) table:
+*   Vgs(th) -0.8 V | Rds 23 mOhm @ -4.5 V / 37 mOhm @ -2.5 V
+*   gfs 17 S | Ciss 1270 pF Crss 237 pF | body diode 0.8 V @ 4 A
+.model SI2333 VDMOS (pchan Vto=-0.8 Kp=24.6 Lambda=0.05
++ Rd=10m Rs=2m Rg=3
++ Cgdmax=780p Cgdmin=120p Cgs=1030p
++ Is=6e-11 N=1.05 Rb=15m)
+
+*----------------------------------------------------------------------
+* AP2112K-3.3 LDO (U3): Vout 3.3 V, dropout 320 mV @ 600 mA (~0.53 ohm),
+* EN threshold ~1.2 V, current limit ~0.9 A. DC-behavioral.
+* nodes: in gnd en out
+* FIXED 2026-09-02: Bref is referenced to gnd, so without the Bin source the
+* regulator conjured its output current out of ground and drew NOTHING from
+* its input. Found by an adversarial review of the Vision board's identical
+* AP2127KADJ model, which showed I(in) = 0.0 mA against a 150 mA load. An LDO
+* conserves CURRENT, not power: Iin = Iout + Iq (AP2112K Iq 55 uA typ).
+* Consequence for the results below: every 3V3 load was previously invisible
+* to VSYS_AI, VSYS and the battery, so the tree was under-loaded.
+.subckt AP2112K33 in gnd en out
+Bref ref gnd V = u(V(en,gnd)-1.2)*u(V(in,gnd)-1.8) *
++ min(3.3, max(V(in,gnd) - 0.53*min(abs(I(Vsns)),0.9), 0))
+Vsns ref mid DC 0
+* 50 mOhm of source impedance. Without it the regulator is an ideal voltage
+* source into 10 uF, so during switch-on its input current becomes an
+* unbounded demand through a half-open Q2 and the transient aborts. A real
+* LDO has output impedance; giving the model some is both more faithful and
+* what lets the solver converge.
+Rout mid out 50m
+* Fin, not a B-source: an abs(I(...)) inside a behavioural source with a u()
+* step also aborts. A linear current-controlled current source is the same
+* physics and converges.
+Fin  in gnd Vsns 1
+Iq   in gnd DC 55u
+Rbl  out gnd 10Meg
+.ends
+
+*----------------------------------------------------------------------
+* TPS61023 boost (U10), TI SLVSF14B: VFB 0.6 V, EN VIH 0.8 V,
+* VIN >= 0.5 V, TRUE load disconnect in shutdown (sec 7.3.2).
+* DC-average: clamped high-gain source regulates FB to 0.6 V, so Vout
+* is set by the REAL external divider. Input current ~ Pout/(Vin*0.85).
+* nodes: in gnd en out fb
+.subckt TPS61023 in gnd en out fb
+Bena ena gnd V = u(V(en,gnd)-0.8)*u(V(in,gnd)-0.5)
+Breg regv gnd V = V(ena) * min(max(1e3*(0.6 - V(fb,gnd)), 0), 5.7)
+Vosns regv rego DC 0
+S1   rego out ena gnd SWEN
+Bibat in gnd I = V(ena) * V(out,gnd)*abs(I(Vosns)) / (max(V(in,gnd),0.5)*0.85)
+Rbl  out gnd 10Meg
+.model SWEN SW (Ron=1m Roff=100Meg Vt=0.5 Vh=0.1)
+.ends
+
+*----------------------------------------------------------------------
+* INA180A1 (U5): gain 20 V/V, output 5 mV..(Vs-20 mV). DC-behavioral.
+* nodes: inp inm vs out
+.subckt INA180A1 inp inm vs out
+Bo out 0 V = max(min(20*V(inp,inm), max(V(vs)-0.02, 0)), 0.005)
+Rout out 0 100Meg
+* same class of omission as the LDO: the vs pin drew nothing. 260 uA is
+* negligible next to the ESP32's load but it should not be zero.
+Bvs vs 0 I = 260u
+.ends
+
+*----------------------------------------------------------------------
+* ETA6003 power path (U2) - datasheet behavior only, no switching:
+*  VBUS>3.9: SYS regulated min(4.5, VBUS-0.1) via ~50 mOhm; battery
+*  charged CC 806 mA (ISET1 1k24 -> 1000/1240) tapering to 0 at 4.2 V.
+*  VBUS absent: BATT->SYS through 50 mOhm internal FET (datasheet p.3).
+* nodes: vbus sys batt
+.subckt ETA6003PP vbus sys batt
+Bmode mode 0 V = u(V(vbus)-3.9)
+Bsysr sysr 0 V = V(mode) * min(4.5, V(vbus)-0.1)
+Rsys  sysr sysint 50m
+S1    sysint sys mode 0 SWPP
+Bmodn modn 0 V = 1 - V(mode)
+S2    batt2 sys modn 0 SWPP
+Rbat  batt batt2 50m
+Bchg  batt 0 I = -V(mode) * min(0.806, max(0, (4.2 - V(batt))*8.06))
+.model SWPP SW (Ron=1u Roff=100Meg Vt=0.5 Vh=0.1)
+.ends

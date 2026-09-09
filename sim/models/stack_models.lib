@@ -1,0 +1,274 @@
+* BugBot stack (Motion + Vision) - simulation model library (2026-09-04)
+* Behavioural models built from datasheet numbers, DC-and-transient safe.
+* Ports are wired by PIN NUMBER from the netlist (scripts/sim/netlist2spice.py),
+* so a mis-wired pin lands on the wrong port and the checks fail.
+
+*----------------------------------------------------------------------
+* SI2333 P-channel MOSFET (Q1 Q2 Q3), Vishay S13-2055 fit (as models.lib)
+.model SI2333 VDMOS (pchan Vto=-0.8 Kp=24.6 Lambda=0.05
++ Rd=10m Rs=2m Rg=3
++ Cgdmax=780p Cgdmin=120p Cgs=1030p
++ Is=6e-11 N=1.05 Rb=15m)
+
+*----------------------------------------------------------------------
+* ETA6003 switching charger with power path, behavioural (no switching).
+*  Power path (datasheet V2.7 p3-5, confirmed 2026-09-04): with VBUS above
+*  the 3.9 V input UVLO the DC-DC regulates SYS to track the cell, VBAT +
+*  ~0.17 V (the "VSYS vs ISYS" curve: 3.87 V with a 3.7 V cell), floored at
+*  VSYSMIN 3.6 V and capped at VSYSMAX 4.5 V, through ~50 mOhm; else BATT ->
+*  SYS through the 50 mOhm power-path FET. Input range 4.4-5.5 V.
+*  Charge: CC = 1000 / R_ISET1 (measured by injecting 1 V into ISET1 and
+*  reading the current, exactly how the chip does it), tapering to 0 at
+*  4.2 V, ENABLED only when ENB is low AND the NTC pin sits inside the
+*  35 %..76.5 % of VBUS window (datasheet thresholds). STATS open-drain low
+*  while charging. So a wrong ISET resistor, a floating ENB or a mis-wired
+*  NTC divider shows up as the wrong (or no) charge current.
+* ports: vbus sys batt enb iset1 ntc stats
+.subckt ETA6003PP vbus sys batt enb iset1 ntc stats
+Bmode mode 0 V = u(V(vbus)-3.9)
+Bsysr sysr0 0 V = V(mode) * min(4.5, min(V(vbus)-0.1, max(3.6, V(batt)+0.17)))
+* dominant pole (1.6 kHz) in the CONTROL path, buffered before the power path
+Rsp   sysr0 sysc 100
+Csp   sysc 0 1u
+Bsysb sysr 0 V = V(sysc)
+Rsys  sysr sysint 50m
+Vsysi sysint sysm DC 0
+S1    sysm sys mode 0 SWPP
+Bmodn modn 0 V = 1 - V(mode)
+S2    batt2 sys modn 0 SWPP
+Rbat  batt batt2 50m
+* ISET1: 1 V reference into the pin, current sets the CC level
+Viset isetr iset1 DC 0
+Vref  isetr 0 DC 1.0
+Bntcok ntcok 0 V = u(V(ntc) - 0.35*V(vbus)) * u(0.765*V(vbus) - V(ntc))
+Benok enok 0 V = u(0.4 - V(enb))
+* input DPPM / Vhold (datasheet p3: 4.5 V): the charge current folds back as
+* VBUS sags toward 4.5 V, here linearly between 4.5 and 4.3 V, so a weak
+* source keeps the system alive and only the charging slows (added 2026-09-06
+* for scenario P; before this the model drew 2 A from a 4.4 V source)
+Bhold hold 0 V = min(1, max(0, (V(vbus) - 4.3) / 0.2))
+Bichg ichg 0 V = V(mode) * V(enok) * V(ntcok) * V(hold) * min(1000*abs(I(Viset)), max(0, (4.2 - V(batt))*10))
+Bchg  batt 0 I = -V(ichg)
+* the USB input pays for everything by power balance at ~90 % (efficiency
+* curve p5): charge power into the cell plus the SYS-side load. Without this
+* the source read 1 mA while charging at 806 mA (shortcut removed 2026-09-04).
+Bin   vbus 0 I = V(mode) * (V(ichg)*max(V(batt),0) + max(0, I(Vsysi))*V(sys)) / (max(V(vbus), 3.9) * 0.90)
+Bstat stats 0 I = V(mode) * V(enok) * V(ntcok) * u(4.15 - V(batt)) * max(V(stats), 0) / 100
+Rqin  vbus 0 5k
+.model SWPP SW (Ron=1u Roff=100Meg Vt=0.5 Vh=0.1)
+.ends
+
+*----------------------------------------------------------------------
+* TPS63020 buck-boost, TI SLVS916I: FB 0.5 V, EN VIH 1.2 V, VIN >= 1.8 V.
+*  Regulates FB to 0.5 V through the REAL external divider (buck or boost).
+*  Input current from power balance at 90 %.
+*  NEW vs vision_models.lib: an OUTPUT CURRENT LIMIT from TI's features
+*  bullet - 2 A for VIN > 2.5 V, derated linearly to 1.2 A at 1.8 V - so an
+*  overloaded rail sags instead of delivering fiction, and the harness can
+*  see headroom. l1/l2 are the inductor pins: 1 mOhm to gnd each so the
+*  external L (a real part on the board) is not left floating.
+* ports: in en out fb l1 l2
+.subckt TPS63020 in en out fb l1 l2
+* continuous enable (0..1 over 0.2 V) - an ideal switch here made the
+* power-on transient step into "timestep too small"
+Bena ena 0 V = min(1, max(0, (V(en)-1.1)/0.2)) * min(1, max(0, (V(in)-1.7)/0.2))
+Bilim ilim 0 V = min(2.0, max(1.2, 1.2 + (V(in)-1.8)*1.143))
+* Integrating control loop: V_ctl = Ki * integral(0.5 - V(fb)) dt, clamped
+* 0..5.5 V. DC-exact (FB settles at 0.5 V) and stable in time: crossover
+* ~300 Hz against the 3 x 22 uF output (a high-gain algebraic loop rang up
+* to -690 V in the mission transient, 2026-09-04).
+Bint  0 regc I = V(ena) * 0.012 * (0.5 - V(fb)) * u(5.5 - V(regc)) * u(V(regc) + 0.001)
++ + (1 - V(ena)) * (0 - V(regc)) * 1e-3
+Cint  regc 0 1u
+Rcl   regc 0 100Meg
+Bregb regv 0 V = V(ena) * min(max(V(regc), 0), 5.5)
+Vosns regv rego DC 0
+* the limit: output impedance rises steeply past ilim
+Blim rego out2 V = max(0, abs(I(Vosns)) - V(ilim)) * 5
+* output disconnect: a conductance that follows the enable (30 mOhm on)
+Bsw  out2 out I = V(out2,out) * (V(ena) / 0.03 + 1e-9)
+Rlk  out2 0 1Meg
+* input current from power balance. Denominator floored at the part's own
+* 1.8 V minimum and the draw capped at the 4 A switch limit: without both,
+* Newton finds a second, false operating point where the input collapses,
+* the draw runs away and the whole tree reads 4 A at 2.9 V (2026-09-04)
+Bibat in 0 I = min(4.0, V(ena) * V(out)*abs(I(Vosns)) / (max(V(in),1.8)*0.90))
+* quiescent as a resistor, never a fixed sink: a fixed sink on a rail that
+* is switched OFF drags the floating node to -10 V through rshunt
+Rq   in 0 74k
+Rbl  out 0 10Meg
+Rl1  l1 0 1m
+Rl2  l2 0 1m
+
+.ends
+
+*----------------------------------------------------------------------
+* DRV8830 I2C H-bridge, TI SLVSAB2, behavioural.
+*  Register state is a subckt PARAM: DIR (+1 forward, -1 reverse, 0 coast)
+*  and VSET (target output volts, 0.48..5.06 V in 64 steps in the real part).
+*  The bridge is a voltage source DIR*min(VSET, VCC-0.1) behind Ron 0.56 ohm
+*  (TI table, HS+LS), written as a CURRENT source with a smooth tanh clamp at
+*  ILIM so a stall settles at the limit instead of jumping across a step.
+*  ILIM is what the ISENSE resistor sets in the real part (0.2 V / R): the
+*  harness passes it from the netlist value, and V(isense) = I*R still comes
+*  out of the real resistor on the board, which is what the checks read.
+*  NOTE the real DRV8830 does not chop at ILIM: it disables the bridge and
+*  latches ILIMIT in FAULT until the P4 clears it. This model holds the
+*  current AT the limit instead, so a DC operating point exists; the fault
+*  pin behaves the same way (nFAULT low while at the limit).
+*  Supply current = motor current (mirrored from VCC into the ISENSE return)
+*  + 1 mA quiescent (as a resistor). I2C pins: 10 pF each.
+* ports: vcc out1 out2 isense fault scl sda
+.subckt DRV8830 vcc out1 out2 isense fault scl sda DIR=0 VSET=3.0 ILIM=0.4
+* UVLO: the part is off below ~2.75 V (outputs open, no path for a motor's
+* back-EMF). Without this gate a collapsed rail let running motors regenerate
+* through the bridge into a false operating point (2026-09-04).
+Bact  act 0 V = min(1, max(0, (V(vcc) - 2.6) / 0.2))
+Bdrv  drv0 0 V = {DIR} * min({VSET}, max(V(vcc) - 0.1, 0))
+Rdp   drv0 drv 100
+Cdp   drv 0 100n
+* demanded current through the bridge's own Ron, then clamped
+Bbr   isense out1 I = V(act) * {ILIM} * tanh( (V(drv) - V(out1,out2)) / (0.56 * {ILIM}) )
+Rret  out2 isense 1u
+* supply draw by power balance: I_vcc = I_bridge * V_drive / V_vcc, so a
+* regenerating motor pushes current back INTO the rail instead of out of it
+Bsup  vcc isense I = V(act) * {ILIM} * tanh( (V(drv) - V(out1,out2)) / (0.56 * {ILIM}) ) * V(drv) / max(V(vcc), 0.5)
+Rq    vcc 0 3.7k
+* nFAULT: open-drain, sinks when the bridge is within 5 % of its limit
+Bflt  fault 0 I = V(act) * min(1, max(0, (abs(V(drv) - V(out1,out2)) / (0.56 * {ILIM}) - 2.5) )) * max(V(fault), 0) / 20
+Cscl  scl 0 10p
+Csda  sda 0 10p
+Risns isense 0 1Meg
+.ends
+
+*----------------------------------------------------------------------
+* USBLC6-2SC6 ESD array (ST, SOT23-6: 1/6 I/O1, 2 GND, 3/4 I/O2, 5 VBUS):
+* line capacitance 3.5 pF max per line to ground, nothing else at DC.
+.subckt USBLC6 io1 io2 vbus
+C1 io1 0 3.5p
+C2 io2 0 3.5p
+Rv vbus 0 100Meg
+.ends
+
+*----------------------------------------------------------------------
+* 6 mm coreless brushed motor, DC version of the alpha_3 model:
+*  winding RWIND, LWIND, back-EMF VBEMF (0 = stalled). No brush noise here;
+*  the transient decks add it separately when they need it.
+.subckt MOTOR p n RWIND=10 LWIND=20u VBEMF=1.6
+Rw  p a {RWIND}
+Lw  a b {LWIND}
+Vemf b n DC {VBEMF}
+.ends
+
+*----------------------------------------------------------------------
+* Digital load: draws I0 as a constant current once the rail is above
+* ~2.5 V, ramping in over 0.4 V so the operating point converges; below
+* that it looks like a resistor. Closer to a regulator-fed SoC than a fixed
+* resistor, which self-limits as a rail sags and flatters every result.
+.subckt CCLOAD p n I0=0.1
+Bld p n I = {I0} * min(1, max(0, (V(p,n) - 2.3)/0.4)) + V(p,n)/1e4
+.ends
+
+*----------------------------------------------------------------------
+* DRV8830T: the DRV8830 model with its REGISTER STATE as ports, for the
+* mission transients: dirn = -1/0/+1 (a PWL the scripted MCU writes),
+* vsetn = target volts. Same bridge, limit, UVLO and nFAULT as DRV8830.
+* ports: vcc out1 out2 isense fault scl sda dirn vsetn
+.subckt DRV8830T vcc out1 out2 isense fault scl sda dirn vsetn ILIM=0.4
+Bact  act 0 V = min(1, max(0, (V(vcc) - 2.6) / 0.2))
+* commanded bridge voltage, then the part's own soft ramp: from standby the
+* PWM duty walks up over ~12 ms (SLVSAB2F p8), modelled as a slew limit of
+* 5 V / 12 ms on the drive node (C = 1u, I = 417 uA), settling in ~0.1 ms.
+Bdrv  drv0 0 V = V(dirn) * min(V(vsetn), max(V(vcc) - 0.1, 0))
+Cdp   drv 0 1u
+Bsl   0 drv I = 417u * tanh( (V(drv0) - V(drv)) / 0.05 )
+Rdl   drv 0 1G
+Bbr   isense out1 I = V(act) * {ILIM} * tanh( (V(drv) - V(out1,out2)) / (0.56 * {ILIM}) )
+Rret  out2 isense 1u
+Bsup  vcc isense I = V(act) * {ILIM} * tanh( (V(drv) - V(out1,out2)) / (0.56 * {ILIM}) ) * V(drv) / max(V(vcc), 0.5)
+Rq    vcc 0 3.7k
+* current-limit fault: the limiter acts within ~3 us, but FAULTn and the
+* ILIMIT bit come only after the limit has persisted ~275 ms (p11). tmr
+* charges at 1 V / 275 ms while at the limit, latches above 1 V, and is
+* reset when the MCU writes IN1 = IN2 = 0 (dirn = 0), which is how the
+* datasheet clears it.
+Blim  lim 0 V = V(act) * min(1, max(0, (abs(V(drv) - V(out1,out2)) / (0.56 * {ILIM}) - 2.5) ))
+Ctm   tmr 0 1u
+Btm   0 tmr I = 1u * ( (abs(V(dirn)) < 0.5) ? (-500 * V(tmr)) : ( (max((V(lim) > 0.5), (V(tmr) > 1.0)) > 0.5) ? ((V(tmr) < 1.2) ? 3.636 : 0) : ((V(tmr) > 0) ? -3.636 : 0) ) )
+Rtm   tmr 0 1G
+Bflt  fault 0 I = V(act) * ((V(tmr) > 1.0) ? 1 : 0) * max(V(fault), 0) / 20
+Cscl  scl 0 10p
+Csda  sda 0 10p
+Risns isense 0 1Meg
+Rdn   dirn 0 1Meg
+Rvs   vsetn 0 1Meg
+.ends
+
+*----------------------------------------------------------------------
+* MOTOR_MECH: brushed DC motor as an electromechanical machine.
+*  Electrical: R, L, back-EMF = KE * w.  Mechanical: J dw/dt = KE*I - B*w - TL
+*  (torque constant = KE in SI). The speed lives on node w (rad/s) as the
+*  voltage across a capacitor of J farads; the load torque TL is constant
+*  (friction-like) and only acts while the shaft turns.
+* ports: p n w
+*  blk: an extra load-torque input (0..1 V) x TLB - the harness drives it to
+*  block a shaft mid-mission (a params expression cannot read a node).
+* ports: p n w blk
+.subckt MOTOR_MECH p n w blk R=4 L=20u KE=1.3e-3 J=2e-9 B=2e-8 TL=1e-5 TLB=0
+Rw   p a {R}
+Lw   a b {L}
+Vsns b c DC 0
+Bemf c n V = {KE} * V(w)
+Cj   w 0 {J}
+Bacc 0 w I = {KE} * I(Vsns) - {B} * V(w) - ({TL} + {TLB} * V(blk)) * tanh(V(w) / 5)
+Rleak w 0 1G
+Rblk blk 0 1G
+.ends
+
+*======================================================================
+* Odometry board (added 2026-09-06): the 1.9 V LDO for the optical flow
+* sensor, and the two sensors as loads. Numbers and sources: parts_spec.py.
+* Everything ramps smoothly (min/max, no u() steps, no abs(I()) inside a
+* B-source, no constant current sinks on a rail that can be dead): the first
+* version dragged the switched-off 3V3 rail to -145 mV through a 60 uA Iq
+* and stopped every .op converging.
+*----------------------------------------------------------------------
+* AP2127K-ADJ (Diodes DS36478): 300 mA LDO, Vadj 0.8 V, dropout ~0.3 V at
+* 300 mA (Rdo 1 ohm), Iq 60 uA, EN threshold ~1.2 V, alive from ~2.5 V in.
+* The reference is a behavioural source clamped to VIN; Fin returns
+* Iout + Iq to the INPUT so the 3V3 rail carries the sensor current (an
+* LDO conserves current, not power).
+.subckt AP2127KADJ in gnd en out fb
+* soft-clamped error amplifier (tanh, gain 200 at the reference): the hard
+* 1e4-gain min/max form of the Vision camera-LDO model gave ngspice a
+* singular matrix once it sat inside the whole stack (2026-09-06)
+Bref ref gnd V = min(1,max(0,(V(en,gnd)-1.0)/0.4)) * min(1,max(0,(V(in,gnd)-2.2)/0.4)) *
++ min(5.5, V(in,gnd)) * 0.5 * (1 + tanh(200*(0.8 - V(fb,gnd))))
+Rdo  ref o2 1.0
+Vsns o2 out DC 0
+Fin  in gnd Vsns 1
+Biq  in gnd I = 60u * min(1, max(0, V(in,gnd)/1.0))
+Rbl  out gnd 10Meg
+.ends
+
+* BNO055 (Bosch BST-BNO055-DS000): 12.3 mA typ from VDD in NDOF fusion
+* mode, VDDIO a few uA. Ramps in above ~2.0 V like CCLOAD so the operating
+* point converges; below the 2.4 V VDD floor it is not a sensor anyway.
+.subckt BNO055_LD vdd vddio gnd IVDD=12.3m IVDDIO=20u
+Bvdd  vdd gnd   I = {IVDD}   * min(1, max(0, (V(vdd,gnd) - 2.0)/0.4))   + V(vdd,gnd)/1e5
+Bio   vddio gnd I = {IVDDIO} * min(1, max(0, (V(vddio,gnd) - 1.5)/0.3)) + V(vddio,gnd)/1e6
+.ends
+
+* PMW3360DM-T2QU (PixArt datasheet v1.30 Table 5: I_DD run4 37 mA typ
+* including the LED, LED current 12 mA; rest modes 2.8 mA / 61 uA / 32 uA):
+* the sensor core on VDD (1.9 V), the SPI pads on VDDIO (current not
+* specified, 1 mA allowance), VDDPIX = its internal pixel regulator output
+* (a cap only), and LED_P = the IR LED it drives, fed through the 39 ohm
+* series resistor on the board: a current sink that follows the run state
+* and collapses smoothly when LED_P is pulled below ~1.2 V.
+.subckt PMW3360_LD vdd vddio vddpix ledp gnd IVDD=25m IVDDIO=1m ILED=12m
+Bvdd  vdd gnd   I = {IVDD}   * min(1, max(0, (V(vdd,gnd) - 1.5)/0.3))   + V(vdd,gnd)/1e5
+Bio   vddio gnd I = {IVDDIO} * min(1, max(0, (V(vddio,gnd) - 1.5)/0.3)) + V(vddio,gnd)/1e6
+Bled  ledp gnd  I = {ILED} * min(1, max(0, (V(vdd,gnd) - 1.5)/0.3)) * min(1, max(0, V(ledp,gnd)/1.2)) + V(ledp,gnd)/1e5
+Rpix  vddpix gnd 100k
+.ends

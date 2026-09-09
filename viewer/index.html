@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BugBot boards in 3D</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Varela+Round&family=Nunito:wght@400;600;700&display=swap">
+<script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
+<style>
+  :root { --bb-green: #A2C594; --bb-green-dark: #85B373; --bb-dark: #2e2e2e; --bb-secondary: #5b6b73; --bb-border: #e0ecdc; --bb-light-bg: #f4f8f1; }
+  body { margin: 0; font-family: 'Nunito', system-ui, sans-serif; color: var(--bb-dark); background: #fff; }
+  header { background: var(--bb-dark); color: #fff; padding: .6rem 1rem; font-family: 'Varela Round', sans-serif; display: flex; gap: 1rem; align-items: center; }
+  header span { width: 14px; height: 14px; border-radius: 50%; background: var(--bb-green); display: inline-block; }
+  main { max-width: 1100px; margin: 0 auto; padding: 1rem; }
+  .tabs { display: flex; gap: .5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .tabs button { font: inherit; font-weight: 600; padding: .4rem .9rem; border-radius: 6px; border: 1px solid var(--bb-green-dark); background: #fff; cursor: pointer; }
+  .tabs button.active { background: var(--bb-green); border-color: var(--bb-green); }
+  model-viewer { width: 100%; height: 60vh; background: var(--bb-light-bg); border: 1px solid var(--bb-border); border-radius: 8px; }
+  .note { color: var(--bb-secondary); font-size: .9rem; margin-top: .75rem; }
+  a { color: var(--bb-green-dark); }
+</style>
+</head>
+<body>
+<header><span></span> BugBot boards</header>
+<main>
+  <div class="tabs">
+    <button data-src="../design/3d/BugBot_Vision_Board.glb" class="active">Vision board</button>
+    <button data-src="../design/3d/BugBot_Motion_Board.glb">Motion board</button>
+    <button data-src="../design/3d/BugBot_Odometry_Board.glb">Odometry board</button>
+  </div>
+  <model-viewer id="mv" src="../design/3d/BugBot_Vision_Board.glb" camera-controls auto-rotate shadow-intensity="1" exposure="1.1" alt="BugBot board"></model-viewer>
+  <p class="note">Drag to rotate, scroll to zoom. Models are exported from the KiCad projects without copper, so parts and outline are shown but not the routing. Schematics and simulation: <a href="../design/schematics/">design/schematics</a>, <a href="../sim/">sim</a>.</p>
+</main>
+<script>
+  const mv = document.getElementById('mv');
+  document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.tabs button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active'); mv.src = b.dataset.src;
+  }));
+</script>
+</body>
+</html>
