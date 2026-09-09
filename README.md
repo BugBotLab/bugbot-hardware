@@ -30,7 +30,7 @@ Three 40 x 40 mm boards stacked on 2 x 5 sockets, on a 3D-printed chassis, movin
 | `design/mechanical/` | chassis and mat (see its README for where the CAD lives today) |
 | `sim/` | the circuit bench: ngspice simulation of the whole stack from the netlists, 89 static checks, scenario runs, and an interactive schematic bench. See `sim/README.md` |
 | `docs/` | assembly and bring-up |
-| `viewer/` | a web page that spins the board models (uses the `.glb` files) |
+| `viewer/` | a web page that spins the board models (uses the `.glb` files), hosted at https://www.bugbotlab.com/bugbot-hardware/viewer/ |
 
 ## Simulation is the schematic test suite
 
