@@ -3,14 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" href="assets/bug.png">
 <title>BugBot boards in 3D</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Varela+Round&family=Nunito:wght@400;600;700&display=swap">
 <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
 <style>
-  :root { --bb-green: #A2C594; --bb-green-dark: #85B373; --bb-dark: #2e2e2e; --bb-secondary: #5b6b73; --bb-border: #e0ecdc; --bb-light-bg: #f4f8f1; }
-  body { margin: 0; font-family: 'Nunito', system-ui, sans-serif; color: var(--bb-dark); background: #fff; }
-  header { background: var(--bb-dark); color: #fff; padding: .6rem 1rem; font-family: 'Varela Round', sans-serif; display: flex; gap: 1rem; align-items: center; }
-  header span { width: 14px; height: 14px; border-radius: 50%; background: var(--bb-green); display: inline-block; }
+  :root { --bb-green: #adc276; --bb-green-dark: #8da45a; --bb-dark: #111111; --bb-secondary: #5f6b57; --bb-border: #e5dfc9; --bb-light-bg: #f6f1e2; }
+  body { margin: 0; font-family: 'Nunito', system-ui, sans-serif; color: var(--bb-dark); background: #fcf7ea; }
+  header { background: #fcf7ea; color: var(--bb-dark); padding: .45rem 1rem; border-bottom: 2px solid var(--bb-green); font-family: 'Varela Round', sans-serif; display: flex; gap: .7rem; align-items: center; }
+  header img { height: 36px; width: auto; }
+  header span { padding: .15rem .6rem; border-radius: 999px; background: var(--bb-green); font-family: 'Nunito', sans-serif; font-size: .8rem; font-weight: 700; }
   main { max-width: 1100px; margin: 0 auto; padding: 1rem; }
   .tabs { display: flex; gap: .5rem; margin-bottom: 1rem; flex-wrap: wrap; }
   .tabs button { font: inherit; font-weight: 600; padding: .4rem .9rem; border-radius: 6px; border: 1px solid var(--bb-green-dark); background: #fff; cursor: pointer; }
@@ -21,7 +23,7 @@
 </style>
 </head>
 <body>
-<header><span></span> BugBot boards</header>
+<header><img src="assets/logo.png" alt="BugBotLab"><span>Boards</span></header>
 <main>
   <div class="tabs">
     <button data-src="../design/3d/BugBot_Vision_Board.glb" class="active">Vision board</button>
