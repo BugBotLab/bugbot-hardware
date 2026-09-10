@@ -21,6 +21,54 @@
   .note { color: var(--bb-secondary); font-size: .9rem; margin-top: .75rem; }
   a { color: var(--bb-green-dark); }
 </style>
+  <!-- analytics: Google Analytics 4 (the Firebase project's stream), only after the consent bar is accepted -->
+  <style>
+    .consent { position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%); z-index: 2000; display: flex; align-items: center; gap: .6rem; max-width: calc(100% - 2rem); padding: .55rem .9rem; border-radius: 999px; background: #111; color: #fff; font-size: .85rem; box-shadow: 0 .5rem 1.5rem rgba(0,0,0,.25); }
+    .consent button { font: inherit; font-weight: 700; font-size: .8rem; padding: .3rem .8rem; border-radius: 999px; border: 1px solid #fff; background: transparent; color: #fff; cursor: pointer; white-space: nowrap; }
+    .consent button.primary { background: #adc276; border-color: #adc276; color: #111; }
+    @media (max-width: 600px) { .consent { flex-wrap: wrap; border-radius: 12px; } }
+  </style>
+  <script>
+    (function () {
+      var ID = "G-9Z3NG4QGRP", started = false, queue = [];
+      function consent() { try { return localStorage.getItem("bugbot.analytics"); } catch (e) { return null; } }
+      function start() {
+        if (started) return; started = true;
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+        gtag("js", new Date());
+        gtag("consent", "default", { ad_storage: "denied", ad_user_data: "denied", ad_personalization: "denied", analytics_storage: "granted" });
+        gtag("config", ID, { send_page_view: true });
+        var s = document.createElement("script"); s.async = true; s.src = "https://www.googletagmanager.com/gtag/js?id=" + ID; document.head.appendChild(s);
+        queue.forEach(function (q) { gtag("event", q[0], q[1]); }); queue = [];
+      }
+      window.bbTrack = function (name, params) {
+        if (consent() === "no") return;
+        var p = Object.assign({ site: "boards" }, params || {});
+        if (started) gtag("event", name, p); else if (queue.length < 50) queue.push([name, p]);
+      };
+      function ask() {
+        var bar = document.createElement("div"); bar.className = "consent";
+        bar.innerHTML = '<span>This site uses analytics cookies so we can see which boards people look at.</span><button class="primary yes">OK</button><button class="no">No thanks</button>';
+        document.body.appendChild(bar);
+        bar.querySelector(".yes").addEventListener("click", function () { try { localStorage.setItem("bugbot.analytics", "yes"); } catch (e) {} bar.remove(); start(); });
+        bar.querySelector(".no").addEventListener("click", function () { try { localStorage.setItem("bugbot.analytics", "no"); } catch (e) {} bar.remove(); queue = []; });
+      }
+      document.addEventListener("DOMContentLoaded", function () {
+        var c = consent();
+        if (c === "yes") start(); else if (c !== "no") ask();
+        // every button and nav link: which calls to action get pressed, and where they lead
+        document.addEventListener("click", function (e) {
+          var a = e.target.closest("a, button"); if (!a || a.closest(".consent")) return;
+          var label = (a.textContent || "").trim().slice(0, 60); if (!label) return;
+          var section = a.closest("section, header, nav, footer"); var where = section ? (section.id || section.tagName.toLowerCase()) : "";
+          bbTrack(a.matches(".btn, .btn-primary, .btn-outline-dark") ? "cta_click" : "link_click", { label: label, where: where, href: (a.getAttribute("href") || "").slice(0, 100) });
+        }, true);
+        // the waitlist form (MailerLite): a submit counts, nothing typed is sent
+        document.addEventListener("submit", function (e) { if (e.target.closest(".ml-form-embedWrapper, form")) bbTrack("waitlist_submit", {}); }, true);
+      });
+    })();
+  </script>
 </head>
 <body>
 <header><img src="assets/logo.png" alt="BugBotLab"><span>Boards</span></header>
