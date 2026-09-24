@@ -4,10 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" type="image/png" href="assets/bug.png?v=2">
-<title>BugBot boards in 3D</title>
+<title>The BugBot circuit boards in 3D, from the KiCad project</title>
+<meta name="description" content="The three BugBot circuit boards in 3D: the Vision board, the Motion board and the odometry board. Drag to rotate, scroll to zoom, straight from the KiCad project.">
+<link rel="canonical" href="https://www.bugbotlab.com/hardware/viewer/">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Varela+Round&family=Nunito:wght@400;600;700&display=swap">
 <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
 <style>
+  .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
   :root { --bb-green: #adc276; --bb-green-dark: #8da45a; --bb-dark: #111111; --bb-secondary: #5f6b57; --bb-border: #c9d6aa; --bb-light-bg: #e2ecce; }
   body { margin: 0; font-family: 'Nunito', system-ui, sans-serif; color: var(--bb-dark); background: #ffffff; }
   header { background: var(--bb-green); color: var(--bb-dark); padding: .45rem 1rem; font-family: 'Varela Round', sans-serif; display: flex; gap: .7rem; align-items: center; }
@@ -71,6 +74,7 @@
   </script>
 </head>
 <body>
+  <h1 class="sr-only">The BugBot circuit boards in 3D</h1>
 <header><img src="assets/logo.png" alt="BugBotLab"><span>Boards</span></header>
 <main>
   <div class="tabs">
