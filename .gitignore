@@ -51,3 +51,19 @@ robots/omni/mech/freecad/sim_*/
 robots/omni/mech/stl/
 robots/omni/mech/renders/
 robots/omni/mech/models/
+# renders and plots, except the approved 2D sketches that PARTS.md cites
+robots/omni/**/*.png
+!robots/omni/mech/freecad/sketches/*.png
+robots/omni/**/*.svg
+# the hand-rolled undo trail: .before-<tag> snapshots and _backup_<tag>/ folders
+robots/omni/**/*.before-*
+robots/omni/**/*.before_*
+robots/omni/**/_backup_*/
+robots/omni/**/*.FCStd.*
+robots/omni/design/schematics/**/_*.py.txt
+# MuJoCo scenes and sweep output
+robots/omni/mech/freecad/sim/*.xml
+robots/omni/mech/freecad/sim/*.urdf
+robots/omni/mech/freecad/sim/*.npz
+robots/omni/mech/freecad/sim/*.version
+robots/omni/mech/freecad/sim/spider/
