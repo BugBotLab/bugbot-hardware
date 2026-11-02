@@ -1,0 +1,1 @@
+{"spin": {"mean_rad_s": 2.999, "ripple_pct_std": 4.47, "ripple_pct_pp": 26.8}, "strafe": {"mean_m_s": 0.15, "ripple_pct_std": 1.39, "bounce_um_pp": 59.3}, "forward": {"mean_m_s": 0.15, "ripple_pct_std": 1.37, "bounce_um_pp": 57.1}}

@@ -1,0 +1,75 @@
+# BugBot NFC antenna as a standard PCB under the floor (approved 2D: bugbot_freecad/sketches/nfc_floor_pcb.png), generated.
+#   C:/Python312/python.exe kicad/lib/nfc_floor_geom.py                                  (geometry, needs shapely)
+#   "C:/Program Files/KiCad/10.0/bin/python.exe" kicad/lib/make_nfc_floor.py             (this: the KiCad project)
+# BugBot_NFCfloor  JLC 2-layer FR4 1.6 mm, bare board (no assembly): the floor outline with the wheel windows and ball
+#                  notch cut out, a 3-turn loop round the edge on the top copper (against the floor), 2 plated holes at
+#                  the centre for the cable's 2 wires (hand-soldered), 3 holes for the existing nylon clamp screws (M2 x 5).
+#                  Replaces BugBot_NFCflex (and BugBot_NFCcoil); the reader board (BugBot_NFC) is unchanged.
+import json, math, os
+import pcbnew
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+_src = open(os.path.join(HERE, "make_nfc_boards.py"), encoding="utf-8").read()
+exec(_src[:_src.index("# ================================================================== the reader board")])   # Design + helpers
+
+GEO = json.load(open(f"{ROOTDIR}/BugBot_NFCfloor/floor_geom.json"))
+PR = GEO["params"]
+X = Design("BugBot_NFCfloor", "BugBot NFC floor-plate antenna",
+           ["JLC 2-layer FR4 1.6 mm, bare board; screwed under the floor plate by the 3 nylon clamp screws (M2 x 5)",
+            f"{PR['NT']}-turn loop {PR['TW']} / {PR['GAP']} round the edge (top copper); replaces BugBot_NFCflex / BugBot_NFCcoil",
+            "J1 = 2 plated holes for the cable's wires (hand-soldered, no part). One copper path pin 1 -> loop -> pin 2 (net COIL)"], {})
+X.part("J1", "Connector_Generic:Conn_01x02", "Antenna wires (solder)",
+       "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical", {"1": "COIL", "2": "COIL"}, (60, 60), None, dnp=True)
+X.schematic(flags=())
+X.new_board(PR["thickness"])
+ds = X.board.GetDesignSettings()
+ds.m_CopperEdgeClearance = mm(0.3); ds.m_TrackMinWidth = mm(0.15); ds.m_MinClearance = mm(0.15)
+nc = ds.m_NetSettings.GetDefaultNetclass(); nc.SetTrackWidth(mm(PR["TW"])); nc.SetClearance(mm(0.15))
+nc.SetViaDiameter(mm(PR["via"][0])); nc.SetViaDrill(mm(PR["via"][1]))
+
+for loop in GEO["outline_edges"]:                             # exact lines and arcs: the outside + the three wheel windows
+    for e in loop:
+        sh = pcbnew.PCB_SHAPE(X.board); sh.SetLayer(pcbnew.Edge_Cuts); sh.SetWidth(mm(0.05))
+        if e["t"] == "arc":
+            sh.SetShape(pcbnew.SHAPE_T_ARC); sh.SetArcGeometry(X.P(*e["a"]), X.P(*e["m"]), X.P(*e["b"]))
+        else:
+            sh.SetShape(pcbnew.SHAPE_T_SEGMENT); sh.SetStart(X.P(*e["a"])); sh.SetEnd(X.P(*e["b"]))
+        X.board.Add(sh)
+for cx, cy in GEO["clamps"]:                                   # clamp screw holes (unplated, routed)
+    s = pcbnew.PCB_SHAPE(X.board); s.SetShape(pcbnew.SHAPE_T_CIRCLE); s.SetLayer(pcbnew.Edge_Cuts)
+    s.SetCenter(X.P(cx, cy)); s.SetEnd(X.P(cx + PR["clamp_d"] / 2, cy)); s.SetWidth(mm(0.05)); X.board.Add(s)
+
+# J1: a 2-pin 2.54 header footprint used as two solder holes; its pins on the two wire-hole points
+(hx0, hy0), (hx1, hy1) = GEO["wire_holes"]
+j = X.add_fp("J1", (hx0 + hx1) / 2, (hy0 + hy1) / 2, 0)
+pp = {p.GetNumber(): X.xy(p) for p in j.Pads()}
+rot = math.degrees(math.atan2(hy1 - hy0, hx1 - hx0) - math.atan2(pp["2"][1] - pp["1"][1], pp["2"][0] - pp["1"][0]))
+j.SetOrientationDegrees(rot)
+pp = {p.GetNumber(): X.xy(p) for p in j.Pads()}                 # the footprint's origin is pin 1: shift pin 1 onto its hole
+jx, jy = X.xy(j); j.SetPosition(X.P(jx + hx0 - pp["1"][0], jy + hy0 - pp["1"][1]))
+j.SetDNP(True); j.SetExcludedFromPosFiles(True)
+j.Models().clear()                                             # no part fitted: no 3D model (the wires are soldered in)
+for p in j.Pads():
+    p.SetDrillSize(pcbnew.VECTOR2I(mm(PR["hole"][0]), mm(PR["hole"][0]))); p.SetSize(pcbnew.VECTOR2I(mm(PR["hole"][1]), mm(PR["hole"][1])))
+    p.SetShape(pcbnew.PAD_SHAPE_CIRCLE)
+for g in j.GraphicalItems():                                   # header body outline off: there is no part
+    if g.GetLayer() in (pcbnew.F_SilkS, pcbnew.F_Fab): j.Remove(g)
+pads = {p.GetNumber(): X.xy(p) for p in j.Pads()}
+
+X.track([tuple(p) for p in GEO["spiral"]], "COIL", PR["TW"], pcbnew.F_Cu)
+X.via(*GEO["vias"][0], "COIL", *PR["via"]); X.via(*GEO["vias"][1], "COIL", *PR["via"])
+X.track([tuple(p) for p in GEO["bottom"]], "COIL", PR["LW"], pcbnew.B_Cu)
+la, lb = [tuple(p) for p in GEO["lead_a"]], [tuple(p) for p in GEO["lead_b"]]
+pa = min(pads, key=lambda n: math.dist(pads[n], la[-1])); pb = "2" if pa == "1" else "1"
+X.track(la[:-1] + [pads[pa]], "COIL", PR["LW"], pcbnew.F_Cu)
+X.track(lb[:-1] + [pads[pb]], "COIL", PR["LW"], pcbnew.F_Cu)
+for txt, (tx, ty), layer, sz in (("NFC loop - wires here", (0, -2.6), pcbnew.B_SilkS, 0.8), ("BugBot NFC floor", (-15, -24), pcbnew.B_SilkS, 1.2)):
+    t = pcbnew.PCB_TEXT(X.board); t.SetText(txt); t.SetPosition(X.P(tx, ty)); t.SetLayer(layer); t.SetMirrored(True)
+    t.SetTextSize(pcbnew.VECTOR2I(mm(sz), mm(sz))); t.SetTextThickness(mm(0.15)); X.board.Add(t)
+X.save(None); X.project_rules()
+pro = f"{X.out}/{X.prj}.kicad_pro"; dj = json.load(open(pro))
+dj["board"]["design_settings"]["rules"].update(min_copper_edge_clearance=0.3)
+json.dump(dj, open(pro, "w"), indent=2)
+json.dump({"floor_pcb": {"thickness": PR["thickness"], "clamps": GEO["clamps"], "wire_holes": GEO["wire_holes"]}},
+          open(f"{X.out}/mcad.json", "w"), indent=1)
+print("floor pcb: J1 rot", round(rot, 1), "pads", {k: [round(v, 2) for v in p] for k, p in pads.items()})

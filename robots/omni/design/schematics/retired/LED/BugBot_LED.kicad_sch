@@ -1,0 +1,4158 @@
+(kicad_sch
+	(version 20250610)
+	(generator "bugbot")
+	(generator_version "10.0")
+	(uuid "8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6")
+	(paper "A4")
+	(title_block
+		(title "BugBot LED ring")
+		(rev "1")
+		(comment 1 "8 x WS2812B-2020, 74AHCT1G125 level shifter, 3-wire lead to J4 on the main board")
+	)
+	(lib_symbols
+		(symbol "74xGxx:74LVC1G125"
+				(exclude_from_sim no)
+				(in_bom yes)
+				(on_board yes)
+				(in_pos_files yes)
+				(duplicate_pin_numbers_are_jumpers no)
+				(property "Reference" "U"
+					(at -10.16 7.62 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Value" "74LVC1G125"
+					(at 2.54 -7.62 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Footprint" ""
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Datasheet" "https://www.ti.com/lit/ds/symlink/sn74lvc1g125.pdf"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Description" "Single Buffer Gate Tri-State, Low-Voltage CMOS"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "ki_keywords" "Single Gate Buff Tri-State LVC CMOS"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "ki_fp_filters" "SOT?23* Texas?R-PDSO-G5?DCK* Texas?R-PDSO-N5?DRL* Texas?X2SON*0.8x0.8mm*P0.48mm*"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(symbol "74LVC1G125_0_1"
+					(polyline
+						(pts
+							(xy -7.62 6.35) (xy -7.62 -6.35) (xy 5.08 0) (xy -7.62 6.35)
+						)
+						(stroke
+							(width 0.254)
+							(type default)
+						)
+						(fill
+							(type background)
+						)
+					)
+				)
+				(symbol "74LVC1G125_1_1"
+					(pin input inverted
+						(at 0 10.16 270)
+						(length 7.62)
+						(name ""
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "1"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+					(pin input line
+						(at -15.24 0 0)
+						(length 7.62)
+						(name ""
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "2"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+					(pin power_in line
+						(at -5.08 -10.16 90)
+						(length 5.08)
+						(name "GND"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "3"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+					(pin tri_state line
+						(at 12.7 0 180)
+						(length 7.62)
+						(name ""
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "4"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+					(pin power_in line
+						(at -5.08 10.16 270)
+						(length 5.08)
+						(name "VCC"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "5"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+				)
+				(embedded_fonts no)
+			)
+		(symbol "Connector_Generic:Conn_01x03"
+				(pin_names
+					(offset 1.016)
+					(hide yes)
+				)
+				(exclude_from_sim no)
+				(in_bom yes)
+				(on_board yes)
+				(in_pos_files yes)
+				(duplicate_pin_numbers_are_jumpers no)
+				(property "Reference" "J"
+					(at 0 5.08 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Value" "Conn_01x03"
+					(at 0 -5.08 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Footprint" ""
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Datasheet" ""
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Description" "Generic connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "ki_keywords" "connector"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "ki_fp_filters" "Connector*:*_1x??_*"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(symbol "Conn_01x03_1_1"
+					(rectangle
+						(start -1.27 3.81)
+						(end 1.27 -3.81)
+						(stroke
+							(width 0.254)
+							(type default)
+						)
+						(fill
+							(type background)
+						)
+					)
+					(rectangle
+						(start -1.27 2.667)
+						(end 0 2.413)
+						(stroke
+							(width 0.1524)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(rectangle
+						(start -1.27 0.127)
+						(end 0 -0.127)
+						(stroke
+							(width 0.1524)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(rectangle
+						(start -1.27 -2.413)
+						(end 0 -2.667)
+						(stroke
+							(width 0.1524)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(pin passive line
+						(at -5.08 2.54 0)
+						(length 3.81)
+						(name "Pin_1"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "1"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+					(pin passive line
+						(at -5.08 0 0)
+						(length 3.81)
+						(name "Pin_2"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "2"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+					(pin passive line
+						(at -5.08 -2.54 0)
+						(length 3.81)
+						(name "Pin_3"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "3"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+				)
+				(embedded_fonts no)
+			)
+		(symbol "Device:C"
+				(pin_numbers
+					(hide yes)
+				)
+				(pin_names
+					(offset 0.254)
+				)
+				(exclude_from_sim no)
+				(in_bom yes)
+				(on_board yes)
+				(in_pos_files yes)
+				(duplicate_pin_numbers_are_jumpers no)
+				(property "Reference" "C"
+					(at 0.635 2.54 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(justify left)
+					)
+				)
+				(property "Value" "C"
+					(at 0.635 -2.54 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(justify left)
+					)
+				)
+				(property "Footprint" ""
+					(at 0.9652 -3.81 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Datasheet" ""
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Description" "Unpolarized capacitor"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "ki_keywords" "cap capacitor"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "ki_fp_filters" "C_*"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(symbol "C_0_1"
+					(polyline
+						(pts
+							(xy -2.032 0.762) (xy 2.032 0.762)
+						)
+						(stroke
+							(width 0.508)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(polyline
+						(pts
+							(xy -2.032 -0.762) (xy 2.032 -0.762)
+						)
+						(stroke
+							(width 0.508)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+				)
+				(symbol "C_1_1"
+					(pin passive line
+						(at 0 3.81 270)
+						(length 2.794)
+						(name ""
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "1"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+					(pin passive line
+						(at 0 -3.81 90)
+						(length 2.794)
+						(name ""
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "2"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+				)
+				(embedded_fonts no)
+			)
+		(symbol "Device:R"
+				(pin_numbers
+					(hide yes)
+				)
+				(pin_names
+					(offset 0)
+				)
+				(exclude_from_sim no)
+				(in_bom yes)
+				(on_board yes)
+				(in_pos_files yes)
+				(duplicate_pin_numbers_are_jumpers no)
+				(property "Reference" "R"
+					(at 2.032 0 90)
+					(show_name no)
+					(do_not_autoplace no)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Value" "R"
+					(at 0 0 90)
+					(show_name no)
+					(do_not_autoplace no)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Footprint" ""
+					(at -1.778 0 90)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Datasheet" ""
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Description" "Resistor"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "ki_keywords" "R res resistor"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "ki_fp_filters" "R_*"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(symbol "R_0_1"
+					(rectangle
+						(start -1.016 -2.54)
+						(end 1.016 2.54)
+						(stroke
+							(width 0.254)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+				)
+				(symbol "R_1_1"
+					(pin passive line
+						(at 0 3.81 270)
+						(length 1.27)
+						(name ""
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "1"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+					(pin passive line
+						(at 0 -3.81 90)
+						(length 1.27)
+						(name ""
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "2"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+				)
+				(embedded_fonts no)
+			)
+		(symbol "LED:WS2812B-2020"
+				(pin_names
+					(offset 0.254)
+				)
+				(exclude_from_sim no)
+				(in_bom yes)
+				(on_board yes)
+				(in_pos_files yes)
+				(duplicate_pin_numbers_are_jumpers no)
+				(property "Reference" "D"
+					(at 5.08 5.715 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(justify right bottom)
+					)
+				)
+				(property "Value" "WS2812B-2020"
+					(at 1.27 -5.715 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(justify left top)
+					)
+				)
+				(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+					(at 1.27 -7.62 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(justify left top)
+					)
+				)
+				(property "Datasheet" "https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf"
+					(at 2.54 -9.525 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+						(justify left top)
+					)
+				)
+				(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "ki_keywords" "RGB LED NeoPixel Nano addressable"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "ki_fp_filters" "LED*WS2812*-2020_PLCC4*"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(symbol "WS2812B-2020_0_0"
+					(text "RGB"
+						(at 2.286 -4.191 0)
+						(effects
+							(font
+								(size 0.762 0.762)
+							)
+						)
+					)
+				)
+				(symbol "WS2812B-2020_0_1"
+					(polyline
+						(pts
+							(xy 1.27 -2.54) (xy 1.778 -2.54)
+						)
+						(stroke
+							(width 0)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(polyline
+						(pts
+							(xy 1.27 -3.556) (xy 1.778 -3.556)
+						)
+						(stroke
+							(width 0)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(polyline
+						(pts
+							(xy 2.286 -1.524) (xy 1.27 -2.54) (xy 1.27 -2.032)
+						)
+						(stroke
+							(width 0)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(polyline
+						(pts
+							(xy 2.286 -2.54) (xy 1.27 -3.556) (xy 1.27 -3.048)
+						)
+						(stroke
+							(width 0)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(polyline
+						(pts
+							(xy 3.683 -1.016) (xy 3.683 -3.556) (xy 3.683 -4.064)
+						)
+						(stroke
+							(width 0)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(polyline
+						(pts
+							(xy 4.699 -1.524) (xy 2.667 -1.524) (xy 3.683 -3.556) (xy 4.699 -1.524)
+						)
+						(stroke
+							(width 0)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(polyline
+						(pts
+							(xy 4.699 -3.556) (xy 2.667 -3.556)
+						)
+						(stroke
+							(width 0)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+					(rectangle
+						(start 5.08 5.08)
+						(end -5.08 -5.08)
+						(stroke
+							(width 0.254)
+							(type default)
+						)
+						(fill
+							(type background)
+						)
+					)
+				)
+				(symbol "WS2812B-2020_1_1"
+					(pin output line
+						(at 7.62 0 180)
+						(length 2.54)
+						(name "DOUT"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "1"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+					(pin power_in line
+						(at 0 -7.62 90)
+						(length 2.54)
+						(name "VSS"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "2"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+					(pin input line
+						(at -7.62 0 0)
+						(length 2.54)
+						(name "DIN"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "3"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+					(pin power_in line
+						(at 0 7.62 270)
+						(length 2.54)
+						(name "VDD"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "4"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+				)
+				(embedded_fonts no)
+			)
+		(symbol "Mechanical:MountingHole"
+				(pin_names
+					(offset 1.016)
+				)
+				(exclude_from_sim no)
+				(in_bom no)
+				(on_board yes)
+				(in_pos_files yes)
+				(duplicate_pin_numbers_are_jumpers no)
+				(property "Reference" "H"
+					(at 0 5.08 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Value" "MountingHole"
+					(at 0 3.175 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Footprint" ""
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Datasheet" ""
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Description" "Mounting Hole without connection"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "ki_keywords" "mounting hole"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "ki_fp_filters" "MountingHole*"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(symbol "MountingHole_0_1"
+					(circle
+						(center 0 0)
+						(radius 1.27)
+						(stroke
+							(width 1.27)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+				)
+				(embedded_fonts no)
+			)
+		(symbol "power:PWR_FLAG"
+				(power global)
+				(pin_numbers
+					(hide yes)
+				)
+				(pin_names
+					(offset 0)
+					(hide yes)
+				)
+				(exclude_from_sim no)
+				(in_bom yes)
+				(on_board yes)
+				(in_pos_files yes)
+				(duplicate_pin_numbers_are_jumpers no)
+				(property "Reference" "#FLG"
+					(at 0 1.905 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Value" "PWR_FLAG"
+					(at 0 3.81 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Footprint" ""
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Datasheet" ""
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "Description" "Special symbol for telling ERC where power comes from"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(property "ki_keywords" "flag power"
+					(at 0 0 0)
+					(show_name no)
+					(do_not_autoplace no)
+					(hide yes)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(symbol "PWR_FLAG_0_0"
+					(pin power_out line
+						(at 0 0 90)
+						(length 0)
+						(name ""
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+						(number "1"
+							(effects
+								(font
+									(size 1.27 1.27)
+								)
+							)
+						)
+					)
+				)
+				(symbol "PWR_FLAG_0_1"
+					(polyline
+						(pts
+							(xy 0 0) (xy 0 1.27) (xy -1.016 1.905) (xy 0 2.54) (xy 1.016 1.905) (xy 0 1.27)
+						)
+						(stroke
+							(width 0)
+							(type default)
+						)
+						(fill
+							(type none)
+						)
+					)
+				)
+				(embedded_fonts no)
+			)
+	)
+	(symbol
+		(lib_id "Connector_Generic:Conn_01x03")
+		(at 30.48 40.64 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(uuid "746f0b78-ea6f-43e2-962a-d0c550b7fecd")
+		(property "Reference" "J1"
+			(at 32.48 34.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "LED lead (5V DIN GND)"
+			(at 32.48 46.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "BugBot:SolderWire_1x03_P2.60mm_D0.7mm"
+			(at 30.48 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 30.48 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "16e92394-b333-4e41-af87-4506b7215e5c")
+		)
+		(pin "2"
+			(uuid "bc76c49c-ca39-4bc4-af47-3bf9c805d846")
+		)
+		(pin "3"
+			(uuid "c95ba062-240b-4414-8cde-f8b08169232e")
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "J1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 25.40 38.10) (xy 22.86 38.10)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9ab161be-5d8a-46e7-95cd-84bb46a2681a")
+	)
+	(label "+5V"
+		(at 22.86 38.10 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "4cc34fbe-0719-4968-9486-2730cd3f7061")
+	)
+	(wire
+		(pts
+			(xy 25.40 40.64) (xy 22.86 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9d2f9536-53fd-4584-9582-4f34f727c9e1")
+	)
+	(label "DIN_IN"
+		(at 22.86 40.64 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "5e620b1d-6d0e-4172-b3b6-4f7efd2c3026")
+	)
+	(wire
+		(pts
+			(xy 25.40 43.18) (xy 22.86 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4e50f8a3-d58e-46ca-8a66-ad371dd88441")
+	)
+	(label "GND"
+		(at 22.86 43.18 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "f863f7fc-d5de-40d5-857f-8a274d0ccc8d")
+	)
+	(symbol
+		(lib_id "74xGxx:74LVC1G125")
+		(at 71.12 40.64 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "2bfd0c84-8da5-4a07-933c-1aa640f53b1b")
+		(property "Reference" "U1"
+			(at 73.12 34.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "74AHCT1G125"
+			(at 73.12 46.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
+			(at 71.12 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/sn74ahct1g125.pdf"
+			(at 71.12 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "SN74AHCT1G125DBVR"
+			(at 71.12 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C7484"
+			(at 71.12 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "910d2f7a-adee-4fb4-a86b-1bc8a64fe58d")
+		)
+		(pin "2"
+			(uuid "aa32665f-d307-4e00-99cd-37fd07ed2343")
+		)
+		(pin "3"
+			(uuid "e45fdfab-f521-4f95-9c7e-780dc6b6b9a0")
+		)
+		(pin "4"
+			(uuid "140a210a-c06c-4c4e-b17e-b8cfda8c3729")
+		)
+		(pin "5"
+			(uuid "6f865d00-7084-4fb8-b037-31225ff9a477")
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "U1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 71.12 30.48) (xy 71.12 27.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "35234624-085d-45f3-8a8a-10b4f90c0bd0")
+	)
+	(label "GND"
+		(at 71.12 27.94 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "0decb220-48d2-4afe-a940-975f0a4ce0b5")
+	)
+	(wire
+		(pts
+			(xy 55.88 40.64) (xy 53.34 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d6cd62ab-f2bf-4559-b0a0-c3148933fb06")
+	)
+	(label "DIN_IN"
+		(at 53.34 40.64 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "1b6d5951-4783-45a8-9a90-33d9007316ae")
+	)
+	(wire
+		(pts
+			(xy 66.04 50.80) (xy 66.04 53.34)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "42992417-944c-414b-97be-4f046afc4710")
+	)
+	(label "GND"
+		(at 66.04 53.34 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "0da40d71-8d2b-463a-a56e-b0f3ae857a10")
+	)
+	(wire
+		(pts
+			(xy 83.82 40.64) (xy 86.36 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "eb463a99-9872-48e9-ba2f-0410587ef023")
+	)
+	(label "DIN_BUF"
+		(at 86.36 40.64 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "dbf34563-0fc9-4fe8-b3f0-7c0339b3e65a")
+	)
+	(wire
+		(pts
+			(xy 66.04 30.48) (xy 66.04 27.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e6ead5f5-ff25-43ac-a2c3-768c60e1ecce")
+	)
+	(label "+5V"
+		(at 66.04 27.94 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "cd13a3ac-3bba-41dc-98e5-ac0a359b2eaf")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 99.06 40.64 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "51f1574f-e563-44b1-963e-24476dd57b27")
+		(property "Reference" "R1"
+			(at 101.06 34.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "33R"
+			(at 101.06 46.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 99.06 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://jlcpcb.com/partdetail/25848-0402WGF330JTCE/C25105"
+			(at 99.06 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0402WGF330JTCE"
+			(at 99.06 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C25105"
+			(at 99.06 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "652c91c2-c7b8-49a7-80b9-651a2e2a8158")
+		)
+		(pin "2"
+			(uuid "21433743-e612-4f1e-b2f9-6a229e56bf22")
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "R1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 99.06 36.83) (xy 99.06 34.29)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e93d6318-4441-411b-9753-91665c1e0482")
+	)
+	(label "DIN_BUF"
+		(at 99.06 34.29 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "6a4d1405-aa8c-4b9a-b7e4-3247541dc00f")
+	)
+	(wire
+		(pts
+			(xy 99.06 44.45) (xy 99.06 46.99)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9369e730-0da0-417c-bdb0-7463059e70ac")
+	)
+	(label "D1_DIN"
+		(at 99.06 46.99 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "871be048-796a-4ae4-b8a0-6612ee96c59d")
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 30.48 71.12 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "0e7f9c99-35fe-490f-87a3-3434abfcf926")
+		(property "Reference" "C9"
+			(at 32.48 65.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "10uF"
+			(at 32.48 77.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+			(at 30.48 71.12 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://jlcpcb.com/partdetail/20411-CL10A106KP8NNNC/C19702"
+			(at 30.48 71.12 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CL10A106KP8NNNC"
+			(at 30.48 71.12 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C19702"
+			(at 30.48 71.12 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "091b985f-7f43-42a8-b4f5-56ebb6618b06")
+		)
+		(pin "2"
+			(uuid "ad41e939-9a2b-4bce-ab89-ed348f9f7a55")
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "C9")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 30.48 67.31) (xy 30.48 64.77)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5fdfb27e-bb7d-4b9f-9c63-bcb7263eaf53")
+	)
+	(label "+5V"
+		(at 30.48 64.77 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d576b70d-22e1-4da5-83bc-edc5076f3325")
+	)
+	(wire
+		(pts
+			(xy 30.48 74.93) (xy 30.48 77.47)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "14ccd14b-1cfb-4597-b9c9-579ebada11be")
+	)
+	(label "GND"
+		(at 30.48 77.47 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "7cd30d47-391c-4cc5-85e1-5d75ee370bfc")
+	)
+	(symbol
+		(lib_id "LED:WS2812B-2020")
+		(at 124.46 40.64 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "eeaebb7b-be4d-4a68-b376-8108e488d321")
+		(property "Reference" "D1"
+			(at 126.46 34.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "WS2812B-2020"
+			(at 126.46 46.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+			(at 124.46 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://jlcpcb.com/partdetail/Worldsemi-WS2812B_2020V6/C52917434"
+			(at 124.46 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "WS2812B-2020-V6"
+			(at 124.46 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C52917434"
+			(at 124.46 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "b61f652a-9e89-4dc5-807a-215df58e1015")
+		)
+		(pin "2"
+			(uuid "28a66dbc-32e2-4b5c-985f-c5ab6b37d835")
+		)
+		(pin "3"
+			(uuid "4c377de2-d218-494e-a2c8-1053e44a1ccb")
+		)
+		(pin "4"
+			(uuid "c9089729-7f51-4a26-b664-a67f1c06bc16")
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "D1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 132.08 40.64) (xy 134.62 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2f55893d-9aaa-4138-a303-22e278546037")
+	)
+	(label "D2_DIN"
+		(at 134.62 40.64 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "3ad02714-f0b5-4cfc-babc-2166c4ed84d5")
+	)
+	(wire
+		(pts
+			(xy 124.46 48.26) (xy 124.46 50.80)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e1d720c8-e6b9-40cd-8030-54ea9270c769")
+	)
+	(label "GND"
+		(at 124.46 50.80 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "999cd189-3ecb-4c1a-bdb7-851e0c5a1d28")
+	)
+	(wire
+		(pts
+			(xy 116.84 40.64) (xy 114.30 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0158b4a9-672c-475c-91d2-d194959a4e52")
+	)
+	(label "D1_DIN"
+		(at 114.30 40.64 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "7c61835a-85eb-4d1a-b900-6734de23ad9a")
+	)
+	(wire
+		(pts
+			(xy 124.46 33.02) (xy 124.46 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "912f7a78-471d-44f7-931f-91b643f8cda5")
+	)
+	(label "+5V"
+		(at 124.46 30.48 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d6fcf4ac-96af-479a-a0c6-25d00718b5a9")
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 124.46 119.38 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "48bad8b9-d72d-44d8-bcb8-d5e12ba2f356")
+		(property "Reference" "C1"
+			(at 126.46 113.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 126.46 125.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 124.46 119.38 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://jlcpcb.com/partdetail/1877-CL05B104KO5NNNC/C1525"
+			(at 124.46 119.38 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 124.46 119.38 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C1525"
+			(at 124.46 119.38 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "dec4d492-e1bb-41cd-99c7-7b7ad05190f0")
+		)
+		(pin "2"
+			(uuid "63b37980-27df-44c6-bcba-9165506f14a1")
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "C1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 124.46 115.57) (xy 124.46 113.03)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "81031cd4-6dcc-473e-a9c1-1faae103d5e1")
+	)
+	(label "+5V"
+		(at 124.46 113.03 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "821a7c0d-5756-4ced-aa7c-1387b220ff9c")
+	)
+	(wire
+		(pts
+			(xy 124.46 123.19) (xy 124.46 125.73)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b51d6a9e-1a63-42fe-ba45-f4a4111c6051")
+	)
+	(label "GND"
+		(at 124.46 125.73 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "c69df7af-ba99-454b-b0d7-15961a3e0b50")
+	)
+	(symbol
+		(lib_id "LED:WS2812B-2020")
+		(at 165.10 40.64 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "48fa67ad-df3d-42e7-abd9-fd3c8f47f49b")
+		(property "Reference" "D2"
+			(at 167.10 34.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "WS2812B-2020"
+			(at 167.10 46.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+			(at 165.10 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://jlcpcb.com/partdetail/Worldsemi-WS2812B_2020V6/C52917434"
+			(at 165.10 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "WS2812B-2020-V6"
+			(at 165.10 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C52917434"
+			(at 165.10 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "88cd0935-942c-41e2-a044-066d237e53f0")
+		)
+		(pin "2"
+			(uuid "76e4324f-1eea-4dfe-8738-ab42cf1282f9")
+		)
+		(pin "3"
+			(uuid "984db358-3656-42ad-90d8-7475e5aeb967")
+		)
+		(pin "4"
+			(uuid "bea289e5-55c0-452d-aa96-52d5b50d02a9")
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "D2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 172.72 40.64) (xy 175.26 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "abc00f06-84f2-4ff5-a0ff-ff3f558d7743")
+	)
+	(label "D3_DIN"
+		(at 175.26 40.64 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d777cf1d-d272-469d-ad21-73bbd23588be")
+	)
+	(wire
+		(pts
+			(xy 165.10 48.26) (xy 165.10 50.80)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fba0b928-b535-47ef-a4fd-bc72f976fae9")
+	)
+	(label "GND"
+		(at 165.10 50.80 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "9fa9cfa8-2e51-4071-9da7-899ec99e9b2d")
+	)
+	(wire
+		(pts
+			(xy 157.48 40.64) (xy 154.94 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8f3ab284-1433-434e-963a-a741f40f7328")
+	)
+	(label "D2_DIN"
+		(at 154.94 40.64 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "71c67c99-70d5-443a-a2d9-d318187cad0f")
+	)
+	(wire
+		(pts
+			(xy 165.10 33.02) (xy 165.10 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a6ea11ac-2b98-4dc1-b2b5-6190c0902dba")
+	)
+	(label "+5V"
+		(at 165.10 30.48 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b73dcf3b-8065-4a12-a470-21e7acc26711")
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 165.10 119.38 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "1abd65d6-0918-4b3f-8e0c-6fe69010cc89")
+		(property "Reference" "C2"
+			(at 167.10 113.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 167.10 125.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 165.10 119.38 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://jlcpcb.com/partdetail/1877-CL05B104KO5NNNC/C1525"
+			(at 165.10 119.38 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 165.10 119.38 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C1525"
+			(at 165.10 119.38 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "87a07277-b08c-4fe9-b398-3ca259de3e94")
+		)
+		(pin "2"
+			(uuid "9629ee91-9d41-43bb-9d94-e90a3ea2d3f1")
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "C2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 165.10 115.57) (xy 165.10 113.03)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f43b37cd-41c8-4fc3-a9e6-9d45311dadc9")
+	)
+	(label "+5V"
+		(at 165.10 113.03 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "53980f63-0de5-4fb7-9299-f836365ef2a3")
+	)
+	(wire
+		(pts
+			(xy 165.10 123.19) (xy 165.10 125.73)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cd625ee4-e27e-4e63-aa4a-de38175d7aeb")
+	)
+	(label "GND"
+		(at 165.10 125.73 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "a6bdd450-0b8b-415c-8341-9d1cf2c279a2")
+	)
+	(symbol
+		(lib_id "LED:WS2812B-2020")
+		(at 205.74 40.64 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "195824d9-09fc-4e34-a17e-b5be205eab56")
+		(property "Reference" "D3"
+			(at 207.74 34.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "WS2812B-2020"
+			(at 207.74 46.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+			(at 205.74 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://jlcpcb.com/partdetail/Worldsemi-WS2812B_2020V6/C52917434"
+			(at 205.74 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "WS2812B-2020-V6"
+			(at 205.74 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C52917434"
+			(at 205.74 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "ce338689-4178-4715-ab31-c4b01241ae91")
+		)
+		(pin "2"
+			(uuid "bf6d8565-c105-4561-9300-41e3cf66e70a")
+		)
+		(pin "3"
+			(uuid "7d287ba5-7060-497a-b521-7bb3b0f21250")
+		)
+		(pin "4"
+			(uuid "fa9dc6f9-b290-4464-a0d8-46229a161ba4")
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "D3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 213.36 40.64) (xy 215.90 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5b916129-1326-4937-8c29-7d4bdd4c3a47")
+	)
+	(label "D4_DIN"
+		(at 215.90 40.64 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "06051956-c0a2-4f89-913a-77486858f0da")
+	)
+	(wire
+		(pts
+			(xy 205.74 48.26) (xy 205.74 50.80)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "45dde35e-683e-454d-bd1c-82b8a4b8c683")
+	)
+	(label "GND"
+		(at 205.74 50.80 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "fc9e376b-3270-4398-ac39-3a760a50ac44")
+	)
+	(wire
+		(pts
+			(xy 198.12 40.64) (xy 195.58 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9097a97f-c156-47de-806d-cfe0e213004f")
+	)
+	(label "D3_DIN"
+		(at 195.58 40.64 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "721dda1e-e69c-4105-ae22-a058a5dba663")
+	)
+	(wire
+		(pts
+			(xy 205.74 33.02) (xy 205.74 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "08c40eeb-d39f-4520-852d-b3368950c42b")
+	)
+	(label "+5V"
+		(at 205.74 30.48 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "30c53afa-e32d-4422-af08-3e46fddc7682")
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 205.74 119.38 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "afc015f1-c01c-4ab4-a391-e46ad53a356c")
+		(property "Reference" "C3"
+			(at 207.74 113.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 207.74 125.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 205.74 119.38 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://jlcpcb.com/partdetail/1877-CL05B104KO5NNNC/C1525"
+			(at 205.74 119.38 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 205.74 119.38 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C1525"
+			(at 205.74 119.38 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "e76bd80f-b1f5-4fca-859f-8f9834443e1e")
+		)
+		(pin "2"
+			(uuid "5c924f60-a08e-48b4-a564-d804dacb2eaf")
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "C3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 205.74 115.57) (xy 205.74 113.03)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2b76da28-89a2-4f1c-87a0-e5bd3a645aa3")
+	)
+	(label "+5V"
+		(at 205.74 113.03 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "95a3bd83-0f39-48ba-b493-73e2a906f768")
+	)
+	(wire
+		(pts
+			(xy 205.74 123.19) (xy 205.74 125.73)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "38052fa1-7415-4cbb-b746-fce251205ca3")
+	)
+	(label "GND"
+		(at 205.74 125.73 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "973c2d94-60f8-4017-848f-2b2694e10e49")
+	)
+	(symbol
+		(lib_id "LED:WS2812B-2020")
+		(at 243.84 40.64 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b526ea89-2faa-4901-8b69-730434d9fa4a")
+		(property "Reference" "D4"
+			(at 245.84 34.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "WS2812B-2020"
+			(at 245.84 46.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+			(at 243.84 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://jlcpcb.com/partdetail/Worldsemi-WS2812B_2020V6/C52917434"
+			(at 243.84 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "WS2812B-2020-V6"
+			(at 243.84 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C52917434"
+			(at 243.84 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "213a04e8-aef0-4d4d-b309-a6a7cda8c87c")
+		)
+		(pin "2"
+			(uuid "63286f24-0140-4c58-b018-20044dc026b8")
+		)
+		(pin "3"
+			(uuid "84ef063b-2291-4b23-9ece-af472058bd93")
+		)
+		(pin "4"
+			(uuid "9d803983-204f-4c97-9b7e-8fdfcd28ce51")
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "D4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 251.46 40.64) (xy 254.00 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8ad433b9-1e97-4213-b478-1385ae02f7ce")
+	)
+	(label "D5_DIN"
+		(at 254.00 40.64 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "fa9b6033-742d-4222-bec7-82fd2c0ca3cf")
+	)
+	(wire
+		(pts
+			(xy 243.84 48.26) (xy 243.84 50.80)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "61dca97f-5d0e-451d-a796-e86e5c9d97be")
+	)
+	(label "GND"
+		(at 243.84 50.80 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "b0b2c93e-3e72-4780-8d6e-c8b1ccdf42f6")
+	)
+	(wire
+		(pts
+			(xy 236.22 40.64) (xy 233.68 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "38c6990c-f3f5-4ad7-8e8e-8a8a439d8482")
+	)
+	(label "D4_DIN"
+		(at 233.68 40.64 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "d8e9ddd9-d243-4d04-9b83-c225dcd69eb5")
+	)
+	(wire
+		(pts
+			(xy 243.84 33.02) (xy 243.84 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3d7b5472-aa3b-4591-ae05-0e2dd7f3d847")
+	)
+	(label "+5V"
+		(at 243.84 30.48 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b14831de-30e1-4c59-810d-397792721587")
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 243.84 119.38 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "7651fa84-42e7-4333-a76f-c2c0a05d2082")
+		(property "Reference" "C4"
+			(at 245.84 113.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 245.84 125.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 243.84 119.38 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://jlcpcb.com/partdetail/1877-CL05B104KO5NNNC/C1525"
+			(at 243.84 119.38 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 243.84 119.38 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C1525"
+			(at 243.84 119.38 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "489d074d-e144-4d52-abdb-d5afc0815846")
+		)
+		(pin "2"
+			(uuid "a3db0da6-98d7-4ad1-97f1-c1e77fb3c0dd")
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "C4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 243.84 115.57) (xy 243.84 113.03)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "65250a7b-c1d1-47bc-af3b-2d0ae9e22cb1")
+	)
+	(label "+5V"
+		(at 243.84 113.03 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b8ca03dc-e0d3-405c-af24-9c4846beb281")
+	)
+	(wire
+		(pts
+			(xy 243.84 123.19) (xy 243.84 125.73)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fe8d811b-efa6-470f-9b3d-ff2eccb1afa6")
+	)
+	(label "GND"
+		(at 243.84 125.73 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "f321728f-0b3f-4f8a-b5d6-afbcdb61b1e6")
+	)
+	(symbol
+		(lib_id "LED:WS2812B-2020")
+		(at 124.46 76.20 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "94699377-c343-4563-81a9-b988bc6a21fe")
+		(property "Reference" "D5"
+			(at 126.46 70.20 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "WS2812B-2020"
+			(at 126.46 82.20 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+			(at 124.46 76.20 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://jlcpcb.com/partdetail/Worldsemi-WS2812B_2020V6/C52917434"
+			(at 124.46 76.20 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "WS2812B-2020-V6"
+			(at 124.46 76.20 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C52917434"
+			(at 124.46 76.20 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "16a4fbe6-3619-4195-ac66-29176a37e4e3")
+		)
+		(pin "2"
+			(uuid "49afb64d-276b-44c9-bff6-2141f6749bc9")
+		)
+		(pin "3"
+			(uuid "129f7161-6c13-4192-a1d6-10bb8fca7fce")
+		)
+		(pin "4"
+			(uuid "5f5bcd34-dd98-4bb2-ba88-dd9a00784341")
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "D5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 132.08 76.20) (xy 134.62 76.20)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "03eb7e87-cfa4-4fa9-a73d-8132b6e8cae1")
+	)
+	(label "D6_DIN"
+		(at 134.62 76.20 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "229af949-865a-4a03-bc38-4a64dbf3674a")
+	)
+	(wire
+		(pts
+			(xy 124.46 83.82) (xy 124.46 86.36)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9842ba75-85dd-4f07-963c-7ea1d24e0dfd")
+	)
+	(label "GND"
+		(at 124.46 86.36 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "ea9745e4-3edc-4693-902e-5e4a8f159ef5")
+	)
+	(wire
+		(pts
+			(xy 116.84 76.20) (xy 114.30 76.20)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8e9e6ab6-339a-45b8-8437-4f61d38d66dd")
+	)
+	(label "D5_DIN"
+		(at 114.30 76.20 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "5fc76ecf-4803-4046-994e-89a2d6b67101")
+	)
+	(wire
+		(pts
+			(xy 124.46 68.58) (xy 124.46 66.04)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a11c1d35-ed99-440f-a0f1-5f9f2e47362f")
+	)
+	(label "+5V"
+		(at 124.46 66.04 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "21854789-fe39-4098-8235-9e255abaca5f")
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 124.46 144.78 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "0a169ecd-3855-4f6e-8236-8ebede750b31")
+		(property "Reference" "C5"
+			(at 126.46 138.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 126.46 150.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 124.46 144.78 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://jlcpcb.com/partdetail/1877-CL05B104KO5NNNC/C1525"
+			(at 124.46 144.78 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 124.46 144.78 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C1525"
+			(at 124.46 144.78 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "6e593b56-5559-4ac1-a4ef-d9c814822add")
+		)
+		(pin "2"
+			(uuid "b81ab580-13a4-4d0c-9e9a-0db8937694b8")
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "C5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 124.46 140.97) (xy 124.46 138.43)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a40909cc-4de3-4d0c-a2d6-fa24698e4682")
+	)
+	(label "+5V"
+		(at 124.46 138.43 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "ea581ed9-6069-4cc4-97c7-44cdb6061bf7")
+	)
+	(wire
+		(pts
+			(xy 124.46 148.59) (xy 124.46 151.13)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4bd35cd2-fe27-4774-af00-6a18feb7e10c")
+	)
+	(label "GND"
+		(at 124.46 151.13 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "9a32df30-b0ce-4b4a-aa68-1bf7b4a00a50")
+	)
+	(symbol
+		(lib_id "LED:WS2812B-2020")
+		(at 165.10 76.20 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "ab6dab52-58ef-44e2-80f6-271a0565f05b")
+		(property "Reference" "D6"
+			(at 167.10 70.20 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "WS2812B-2020"
+			(at 167.10 82.20 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+			(at 165.10 76.20 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://jlcpcb.com/partdetail/Worldsemi-WS2812B_2020V6/C52917434"
+			(at 165.10 76.20 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "WS2812B-2020-V6"
+			(at 165.10 76.20 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C52917434"
+			(at 165.10 76.20 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "86565800-34ce-479c-9ed1-f81d5ccad8e0")
+		)
+		(pin "2"
+			(uuid "bcb8ec43-d01a-47cd-b526-befa5f016a2e")
+		)
+		(pin "3"
+			(uuid "9f1cefd6-434e-4a61-b53a-b9a361ea1b6c")
+		)
+		(pin "4"
+			(uuid "737dcf03-7045-4378-a9ba-039258905f3f")
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "D6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 172.72 76.20) (xy 175.26 76.20)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0cb4fbc2-5533-4100-9ed8-7c4d07ac2f0f")
+	)
+	(label "D7_DIN"
+		(at 175.26 76.20 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "9cfc0f2d-e797-4eaa-9c93-8e6e1de6405c")
+	)
+	(wire
+		(pts
+			(xy 165.10 83.82) (xy 165.10 86.36)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "61992e31-eb99-4bca-9f6a-fabb797daba8")
+	)
+	(label "GND"
+		(at 165.10 86.36 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "35dea4c4-f504-47a9-bbc6-723c54d28387")
+	)
+	(wire
+		(pts
+			(xy 157.48 76.20) (xy 154.94 76.20)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "80cb803b-c5f6-482c-b4a6-e1978871d227")
+	)
+	(label "D6_DIN"
+		(at 154.94 76.20 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "6eb64c74-8338-44a4-8c58-5c30544838eb")
+	)
+	(wire
+		(pts
+			(xy 165.10 68.58) (xy 165.10 66.04)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "85502341-4b3d-4f88-a5cc-245d1d4a965c")
+	)
+	(label "+5V"
+		(at 165.10 66.04 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "4b857a37-3887-4c81-a75f-0dda8cf00bac")
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 165.10 144.78 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "46512d1f-5e88-44cb-888d-d96a3f00f211")
+		(property "Reference" "C6"
+			(at 167.10 138.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 167.10 150.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 165.10 144.78 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://jlcpcb.com/partdetail/1877-CL05B104KO5NNNC/C1525"
+			(at 165.10 144.78 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 165.10 144.78 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C1525"
+			(at 165.10 144.78 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "ffc47935-c205-45d3-892e-2d33b94cfbb1")
+		)
+		(pin "2"
+			(uuid "7ba35e74-732b-4e7a-8002-c83e3781bbf7")
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "C6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 165.10 140.97) (xy 165.10 138.43)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4667d775-7857-4cab-bdd8-6276e36c54b8")
+	)
+	(label "+5V"
+		(at 165.10 138.43 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "eb9e0a47-ef25-4882-b3b1-505958c0dbc7")
+	)
+	(wire
+		(pts
+			(xy 165.10 148.59) (xy 165.10 151.13)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b7e7345a-a48b-4204-9c9e-ad2ca6c2d682")
+	)
+	(label "GND"
+		(at 165.10 151.13 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "9a20e4a7-3d71-4625-bf56-c8419e45d42c")
+	)
+	(symbol
+		(lib_id "LED:WS2812B-2020")
+		(at 205.74 76.20 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "bdc9999c-248c-42fe-9a5b-999dcc95e70b")
+		(property "Reference" "D7"
+			(at 207.74 70.20 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "WS2812B-2020"
+			(at 207.74 82.20 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+			(at 205.74 76.20 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://jlcpcb.com/partdetail/Worldsemi-WS2812B_2020V6/C52917434"
+			(at 205.74 76.20 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "WS2812B-2020-V6"
+			(at 205.74 76.20 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C52917434"
+			(at 205.74 76.20 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "7f9f076d-26ac-4a7e-b8e5-38dc7a5968ce")
+		)
+		(pin "2"
+			(uuid "7ab8ffb8-d87f-4db8-a490-b44084fd13c5")
+		)
+		(pin "3"
+			(uuid "4a522207-cf58-4f10-bc93-8bb5f06b425e")
+		)
+		(pin "4"
+			(uuid "c7c5762b-023f-4986-b9a6-24109ef3f45c")
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "D7")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 213.36 76.20) (xy 215.90 76.20)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "dc053b41-09f5-49fa-91eb-9c82490264e0")
+	)
+	(label "D8_DIN"
+		(at 215.90 76.20 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "87964b4e-4b7f-490b-b2e7-6e1647222926")
+	)
+	(wire
+		(pts
+			(xy 205.74 83.82) (xy 205.74 86.36)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ed79ffcf-2b5c-42bf-bbaf-64d5d269d04f")
+	)
+	(label "GND"
+		(at 205.74 86.36 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "b2c8efcd-9d3f-4d03-a103-749d3ab41794")
+	)
+	(wire
+		(pts
+			(xy 198.12 76.20) (xy 195.58 76.20)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "93173637-9afa-40d8-b8ab-faed2df64dd3")
+	)
+	(label "D7_DIN"
+		(at 195.58 76.20 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "d3a2fa50-d680-4fbe-ac90-4ff5e911d746")
+	)
+	(wire
+		(pts
+			(xy 205.74 68.58) (xy 205.74 66.04)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "70642504-4300-4a92-a28b-f7a7eda2b88e")
+	)
+	(label "+5V"
+		(at 205.74 66.04 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b6182a3a-28c4-4e2d-a26a-399cd21fcc1d")
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 205.74 144.78 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "8c5a9838-9ba3-4ff4-8247-7a636d530bed")
+		(property "Reference" "C7"
+			(at 207.74 138.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 207.74 150.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 205.74 144.78 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://jlcpcb.com/partdetail/1877-CL05B104KO5NNNC/C1525"
+			(at 205.74 144.78 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 205.74 144.78 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C1525"
+			(at 205.74 144.78 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "3d917a45-746f-4271-93b2-4902fc2ba165")
+		)
+		(pin "2"
+			(uuid "ca9c5550-73d9-48f2-98fb-7d2abbcea98c")
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "C7")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 205.74 140.97) (xy 205.74 138.43)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fad814a7-be9f-472b-ab59-db2d1a32f773")
+	)
+	(label "+5V"
+		(at 205.74 138.43 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "79026e97-990c-4beb-bc1e-9a322a6fbc89")
+	)
+	(wire
+		(pts
+			(xy 205.74 148.59) (xy 205.74 151.13)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "56a6e525-2bfa-4994-93a6-5f1acc25a3a3")
+	)
+	(label "GND"
+		(at 205.74 151.13 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "7070cc57-26bf-40e2-8de3-1495c2e9556c")
+	)
+	(symbol
+		(lib_id "LED:WS2812B-2020")
+		(at 243.84 76.20 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "c53ef27b-c74a-4409-a954-90db91bc2d37")
+		(property "Reference" "D8"
+			(at 245.84 70.20 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "WS2812B-2020"
+			(at 245.84 82.20 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+			(at 243.84 76.20 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://jlcpcb.com/partdetail/Worldsemi-WS2812B_2020V6/C52917434"
+			(at 243.84 76.20 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "WS2812B-2020-V6"
+			(at 243.84 76.20 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C52917434"
+			(at 243.84 76.20 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "a684d0bf-990b-4cc1-bef5-1d7e631d7f75")
+		)
+		(pin "2"
+			(uuid "a5db8ffc-601b-4ca5-8231-cef7b1e1092d")
+		)
+		(pin "3"
+			(uuid "02a1dbb4-c124-4125-b15f-d0c7de5f2752")
+		)
+		(pin "4"
+			(uuid "aaf0d23a-9953-47b6-8e56-4facf0f0ecdc")
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "D8")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(no_connect
+		(at 251.46 76.20)
+		(uuid "0ed824d4-918e-4156-a61e-d833cbec66f8")
+	)
+	(wire
+		(pts
+			(xy 243.84 83.82) (xy 243.84 86.36)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d119638a-56d5-4fe8-84ea-67b48044cdb3")
+	)
+	(label "GND"
+		(at 243.84 86.36 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "0a1e4a49-6565-45b0-984f-ae4905f91016")
+	)
+	(wire
+		(pts
+			(xy 236.22 76.20) (xy 233.68 76.20)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "71a632a1-784e-47ce-8106-7e3a11cf5a90")
+	)
+	(label "D8_DIN"
+		(at 233.68 76.20 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "764ac567-6fb0-424b-a225-7150a58f5944")
+	)
+	(wire
+		(pts
+			(xy 243.84 68.58) (xy 243.84 66.04)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8a490d1e-1eda-4bba-8292-3da00b9e0536")
+	)
+	(label "+5V"
+		(at 243.84 66.04 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "a92fb5c4-c00c-4b1a-85d5-7aab36f5c926")
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 243.84 144.78 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "aaa0e539-fd32-4e56-8da1-76c2d742961a")
+		(property "Reference" "C8"
+			(at 245.84 138.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 245.84 150.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 243.84 144.78 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://jlcpcb.com/partdetail/1877-CL05B104KO5NNNC/C1525"
+			(at 243.84 144.78 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CL05B104KO5NNNC"
+			(at 243.84 144.78 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C1525"
+			(at 243.84 144.78 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "2a9cc18a-07f0-4044-adf2-00d5e3c99e7a")
+		)
+		(pin "2"
+			(uuid "67692c4f-8015-4e8e-a8db-7d5e54879d9a")
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "C8")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 243.84 140.97) (xy 243.84 138.43)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bbb01c77-f717-4c86-a846-bd30e073278c")
+	)
+	(label "+5V"
+		(at 243.84 138.43 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "808d459e-b3a3-4150-86dc-24eb6f41cc0e")
+	)
+	(wire
+		(pts
+			(xy 243.84 148.59) (xy 243.84 151.13)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "44320ec4-557e-41d8-bebc-1d34f52572d0")
+	)
+	(label "GND"
+		(at 243.84 151.13 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "40158e36-d400-4fc9-8853-530ffc79e110")
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole")
+		(at 30.48 109.22 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(uuid "252719d8-7ac6-408b-a35e-881ed3d125c0")
+		(property "Reference" "H1"
+			(at 32.48 103.22 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "M2"
+			(at 32.48 115.22 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_2.2mm_M2"
+			(at 30.48 109.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 30.48 109.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "H1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole")
+		(at 45.72 109.22 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(uuid "0e5d5879-5a06-4578-b92a-ffa27a40014e")
+		(property "Reference" "H2"
+			(at 47.72 103.22 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "M2"
+			(at 47.72 115.22 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_2.2mm_M2"
+			(at 45.72 109.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 45.72 109.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "H2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:PWR_FLAG")
+		(at 30.48 139.70 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(dnp no)
+		(uuid "5eeb8941-4b2e-4927-80c1-ff8686b32919")
+		(property "Reference" "#FLG01"
+			(at 32.48 133.70 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "PWR_FLAG"
+			(at 32.48 145.70 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 30.48 139.70 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 30.48 139.70 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "3680fd19-324d-4b25-afc9-64fa94f2a541")
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "#FLG01")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(label "+5V"
+		(at 30.48 139.70 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "be7fb826-73f7-4e34-acab-561815fc3899")
+	)
+	(symbol
+		(lib_id "power:PWR_FLAG")
+		(at 50.80 139.70 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(dnp no)
+		(uuid "744761db-8239-4c15-a4d3-62f6b0745498")
+		(property "Reference" "#FLG02"
+			(at 52.80 133.70 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "PWR_FLAG"
+			(at 52.80 145.70 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 50.80 139.70 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 50.80 139.70 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "6ea138ae-7f31-4dcd-a398-d2a606e74cf8")
+		)
+		(instances
+			(project "BugBot_LED"
+				(path "/8803f0a0-3e6b-4c72-93b4-f1a2cf6e48d6"
+					(reference "#FLG02")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(label "GND"
+		(at 50.80 139.70 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d6c6cd01-816b-4133-bd9a-77f0404da89d")
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)

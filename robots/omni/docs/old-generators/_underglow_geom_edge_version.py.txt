@@ -1,0 +1,132 @@
+# Underglow LEDs on the NFC floor PCB: positions and the LED bus path.
+#   C:/Python312/python.exe kicad/lib/underglow_geom.py     (needs shapely; writes kicad/BugBot_NFCfloor/underglow.json)
+# WS2812B-2020 on the bottom face in 12 equally spaced slots (a slot too near a window or a bend of the bus is left empty), all 3.0 mm in from the robot's edge (following the outline, ball notch too) and
+# equally spaced along that line; each LED's 100 nF beside it along the edge. The bus (5 V, GND, data) follows the same
+# line, except where that line clips a wheel window's outer corner: there it goes round the window's inner side. The bus
+# is an open chain (connector -> LED 1 ... LED 12, no closing segment), so it never makes a ring inside the NFC loop.
+import json, math, os
+from shapely.geometry import Polygon, Point, LineString
+from shapely.ops import substring
+from shapely import affinity
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+F = json.load(open(os.path.join(HERE, "..", "BugBot_NFCflex", "floor_outline.json")))
+G = json.load(open(os.path.join(HERE, "..", "BugBot_NFCfloor", "floor_geom.json")))
+O = Polygon(F["outer"])
+win = [Polygon(h) for h in F["holes"] if Polygon(h).area > 300 and not Polygon(h).contains(Point(0, 0))]
+clamps = [Point(c) for c in G["clamps"]]
+leads = LineString(G["lead_a"]).union(LineString(G["lead_b"]))
+cu = LineString(G["spiral"])
+N, D = 12, 3.0                                           # 12 equally spaced slots; a slot that fails the checks is left empty
+BOX = Polygon([(-1.6, -1.3), (3.15, -1.3), (3.15, 1.3), (-1.6, 1.3)])        # LED courtyard 3.13 x 2.59 + the 0402 cap beside it (+s), courtyard 1.9 x 1.0
+LANE_W, LANE_OFS = 0.4, 0.9                                               # 5 V and GND lanes (top) either side of the data line (top, centre); vias fit between
+BUS_HALF = LANE_OFS + LANE_W / 2 + 0.35                                     # + 0.3 copper-to-edge (+ margin)
+ring = LineString(O.buffer(-D).exterior.coords)
+if not Polygon(ring).exterior.is_ccw: ring = LineString(list(ring.coords)[::-1])
+L = ring.length
+
+
+def frame(s):
+    p = ring.interpolate(s % L); q = ring.interpolate((s + 0.3) % L)
+    return p, math.degrees(math.atan2(q.y - p.y, q.x - p.x))
+
+
+def foot(s):
+    p, a = frame(s)
+    return affinity.translate(affinity.rotate(BOX, a, origin=(0, 0)), p.x, p.y)
+
+
+def margin(s):
+    b = foot(s)
+    return min(min(b.distance(w) for w in win), min(b.distance(c) - 1.9 for c in clamps), b.distance(leads), b.distance(cu))
+
+
+# where the line has to leave the ring to get round a window (the bus detours there): keep every LED 4 mm from those
+blocked = [any(ring.interpolate(L * q / 2000).distance(w) < BUS_HALF + 0.1 for w in win) for q in range(2000)]
+def detour_gap(s):
+    q0 = int((s % L) / L * 2000)
+    for d in range(0, 2000):
+        if blocked[(q0 + d) % 2000] or blocked[(q0 - d) % 2000]: return d * L / 2000
+    return L
+fits = lambda x: margin(x) >= 0.3 and detour_gap(x) >= 4.0
+def score(ph):
+    ss = [L / N * k + L / N * ph / 600 for k in range(N)]
+    ok = [x for x in ss if fits(x)]
+    return (len(ok), min([margin(x) for x in ok] or [0]), min([detour_gap(x) for x in ok] or [0]))
+cands = sorted(((score(ph), ph) for ph in range(600)), reverse=True)
+(n_ok, m_, g_), ph_ = cands[0]
+print(f"phase: {n_ok} of {N} slots kept; their worst margin {m_:.2f} mm, nearest bend {g_:.1f} mm")
+best = (m_, ph_)
+S_ALL = [L / N * k + L / N * best[1] / 600 for k in range(N)]
+S = [x for x in S_ALL if fits(x)]                         # the kept slots
+N = len(S)
+
+# the chain is broken at the NFC tail (128 deg), so the bus never passes the loop's joint or its leads: it runs CCW from the
+# first LED after the tail round to the last one before it, and is fed from the centre at that last LED (data runs CW)
+TAIL = math.radians(128.0)
+ang_of = lambda k: (math.atan2(frame(S[k])[0].y, frame(S[k])[0].x) - TAIL) % (2 * math.pi)
+ccw = sorted(range(N), key=ang_of)                    # first after the tail ... last before it
+def feed_clear(s):
+    p, _ = frame(s)
+    seg = LineString([(0, 0), (p.x, p.y)])
+    return min(min(seg.distance(w) for w in win), min(seg.distance(c) - 1.9 for c in clamps), seg.distance(leads))
+
+
+def bus_between(s0, s1):
+    """the bus from ring position s0 to s1 (CCW), going round the inner side of any window it would clip"""
+    s1 = s1 if s1 > s0 else s1 + L
+    seg = substring(ring, s0, min(s1, L)) if s1 <= L else LineString(list(substring(ring, s0, L).coords) + list(substring(ring, 0, s1 - L).coords)[1:])
+    pts = list(seg.coords)
+    for w in win:
+        wb = w.buffer(BUS_HALF + 0.1, 32)
+        line = LineString(pts)
+        if not line.intersects(wb): continue
+        inside = [i for i, p in enumerate(pts) if wb.contains(Point(p))]
+        if not inside: continue
+        i0, i1 = inside[0] - 1, inside[-1] + 1
+        A, B = Point(pts[i0]), Point(pts[i1])
+        bd = LineString(wb.exterior.coords); La = bd.length
+        ta, tb = bd.project(A), bd.project(B)
+        def arc(t0, t1):
+            if t1 >= t0: return list(substring(bd, t0, t1).coords)
+            return list(substring(bd, t0, La).coords) + list(substring(bd, 0, t1).coords)[1:]
+        c1, c2 = arc(ta, tb), arc(tb, ta)[::-1]
+        mean_r = lambda c: sum(math.hypot(x, y) for x, y in c) / len(c)
+        det = c1 if mean_r(c1) < mean_r(c2) else c2                              # the inner way round
+        pts = pts[:i0 + 1] + det + pts[i1:]
+    return pts
+
+
+bus = []
+for i in range(N - 1):
+    part = bus_between(S[ccw[i]], S[ccw[i + 1]])
+    bus += part if not bus else part[1:]
+order = ccw[::-1]; bus = bus[::-1]                    # data: fed at the LED before the tail, then clockwise
+leds = []
+for i, k in enumerate(order):
+    p, a = frame(S[k])
+    leds.append({"n": i + 1, "x": round(p.x, 3), "y": round(p.y, 3), "ang": round(a, 2)})
+# feed (top copper): from the centre round a circle r 8.5 counter-clockwise (270 -> 105 deg, well clear of the NFC tail at
+# 128), straight out to the ring 5 mm before LED 1, then along the ring into LED 1: LED 1 sees the same layout as the rest
+U1 = (0.0, -7.5)
+RM, A_END, JOIN = 8.5, 105.0, 5.0
+s1 = S[order[0]]
+J = ring.interpolate((s1 + JOIN) % L)                           # upstream of LED 1 = counter-clockwise along the ring
+arc = [(RM * math.cos(math.radians(270 + (A_END - 270 + 360) % 360 * t / 60)), RM * math.sin(math.radians(270 + (A_END - 270 + 360) % 360 * t / 60))) for t in range(61)]
+into = list(substring(ring, s1, s1 + JOIN).coords)[::-1] if s1 + JOIN <= L else None
+assert into, "LED 1 too close to the ring's seam"
+feed = arc + into
+fl = LineString(feed)
+feed_clear = min(min(fl.distance(w) for w in win), min(fl.distance(c) - 1.9 for c in clamps))
+path = feed + bus[1:]
+pl = LineString(path)
+lane_out = list(pl.offset_curve(-LANE_OFS, join_style=2, mitre_limit=2.0).simplify(0.02).coords)     # right of the path (simplified: the router chokes on tiny segments)
+lane_in = list(pl.offset_curve(LANE_OFS, join_style=2, mitre_limit=2.0).simplify(0.02).coords)
+busl = LineString(bus)
+chk = {"led_margin_mm": round(best[0], 2), "spacing_mm": round(L / N, 2), "feed_clear_mm": round(feed_clear, 2),
+       "bus_to_windows_mm": round(min(busl.distance(w) for w in win), 2), "bus_to_nfc_copper_mm": round(busl.distance(cu), 2),
+       "bus_len_mm": round(busl.length, 1)}
+json.dump({"N": N, "D": D, "leds": leds, "bus": bus, "feed": feed, "U1": U1, "lane_a": lane_out, "lane_b": lane_in, "lane_w": LANE_W, "check": chk},
+          open(os.path.join(HERE, "..", "BugBot_NFCfloor", "underglow.json"), "w"), indent=0)
+print('lanes', len(lane_out), len(lane_in), 'lane-to-window', round(min(min(LineString(l).distance(w) for w in win) for l in (lane_out, lane_in)), 2), 'lane-to-NFC', round(min(LineString(l).distance(cu) for l in (lane_out, lane_in)), 2), 'lane-to-clamps', round(min(min(LineString(l).distance(c) - 1.9 for c in clamps) for l in (lane_out, lane_in)), 2))
+print(json.dumps(chk))

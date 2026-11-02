@@ -1,0 +1,99 @@
+{
+ "I_turn_mA_x1": 19.5,
+ "need_ms": 15.0,
+ "front_rim_x": 25.0,
+ "by_current": {
+  "x1 (19 mA/turn)": {
+   "z 1.5": {
+    "angles_read": "0 of 36",
+    "tag_centre_first_read_inside_rim_mm": null,
+    "zone_depth_mm_median": 0.0,
+    "max_speed_m_s_straight_in": 0.0,
+    "own_stinger_x_hmin_max": 0.34
+   },
+   "z 2.5": {
+    "angles_read": "0 of 36",
+    "tag_centre_first_read_inside_rim_mm": null,
+    "zone_depth_mm_median": 0.0,
+    "max_speed_m_s_straight_in": 0.0,
+    "own_stinger_x_hmin_max": 0.43
+   },
+   "z 3.5": {
+    "angles_read": "0 of 36",
+    "tag_centre_first_read_inside_rim_mm": null,
+    "zone_depth_mm_median": 0.0,
+    "max_speed_m_s_straight_in": 0.0,
+    "own_stinger_x_hmin_max": 0.55
+   }
+  },
+  "x1.5 (29 mA/turn)": {
+   "z 1.5": {
+    "angles_read": "29 of 36",
+    "tag_centre_first_read_inside_rim_mm": 10.0,
+    "zone_depth_mm_median": 8.0,
+    "max_speed_m_s_straight_in": 0.53,
+    "own_stinger_x_hmin_max": 0.51
+   },
+   "z 2.5": {
+    "angles_read": "31 of 36",
+    "tag_centre_first_read_inside_rim_mm": 8.5,
+    "zone_depth_mm_median": 10.5,
+    "max_speed_m_s_straight_in": 0.7,
+    "own_stinger_x_hmin_max": 0.64
+   },
+   "z 3.5": {
+    "angles_read": "36 of 36",
+    "tag_centre_first_read_inside_rim_mm": 7.5,
+    "zone_depth_mm_median": 12.5,
+    "max_speed_m_s_straight_in": 0.83,
+    "own_stinger_x_hmin_max": 0.82
+   }
+  },
+  "x2 (39 mA/turn)": {
+   "z 1.5": {
+    "angles_read": "36 of 36",
+    "tag_centre_first_read_inside_rim_mm": 6.0,
+    "zone_depth_mm_median": 34.0,
+    "max_speed_m_s_straight_in": 2.27,
+    "own_stinger_x_hmin_max": 0.67
+   },
+   "z 2.5": {
+    "angles_read": "36 of 36",
+    "tag_centre_first_read_inside_rim_mm": 5.5,
+    "zone_depth_mm_median": 34.5,
+    "max_speed_m_s_straight_in": 2.3,
+    "own_stinger_x_hmin_max": 0.85
+   },
+   "z 3.5": {
+    "angles_read": "36 of 36",
+    "tag_centre_first_read_inside_rim_mm": 5.0,
+    "zone_depth_mm_median": 35.0,
+    "max_speed_m_s_straight_in": 2.33,
+    "own_stinger_x_hmin_max": 1.09
+   }
+  },
+  "x3 (58 mA/turn)": {
+   "z 1.5": {
+    "angles_read": "36 of 36",
+    "tag_centre_first_read_inside_rim_mm": 3.0,
+    "zone_depth_mm_median": 37.0,
+    "max_speed_m_s_straight_in": 2.47,
+    "own_stinger_x_hmin_max": 1.01
+   },
+   "z 2.5": {
+    "angles_read": "36 of 36",
+    "tag_centre_first_read_inside_rim_mm": 2.5,
+    "zone_depth_mm_median": 37.5,
+    "max_speed_m_s_straight_in": 2.5,
+    "own_stinger_x_hmin_max": 1.28
+   },
+   "z 3.5": {
+    "angles_read": "36 of 36",
+    "tag_centre_first_read_inside_rim_mm": 2.2,
+    "zone_depth_mm_median": 37.5,
+    "max_speed_m_s_straight_in": 2.5,
+    "own_stinger_x_hmin_max": 1.64
+   }
+  }
+ }
+}

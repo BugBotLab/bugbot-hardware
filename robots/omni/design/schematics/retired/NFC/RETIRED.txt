@@ -1,0 +1,3 @@
+RETIRED 2026-10-31: do not order.
+The reader now lives on the NFC floor PCB (kicad/BugBot_NFCfloor, make_nfc_floor.py; circuit in lib/nfc_reader_circuit.py).
+This board (lib/make_nfc_boards.py) is kept buildable for reference.

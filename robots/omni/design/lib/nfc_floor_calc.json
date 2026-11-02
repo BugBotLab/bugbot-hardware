@@ -1,0 +1,31 @@
+{
+ "as_built": {
+  "loop_mA": 29.305811823268527,
+  "supply_mA": 2.2722953848731895,
+  "Q": 32.65638720338741,
+  "range_mm_likely": 0.0,
+  "range_mm_spread": [
+   0.0,
+   0.0
+  ],
+  "zone_mm_likely": null
+ },
+ "retuned": {
+  "Cs_pF": 10,
+  "Cp_pF": 94,
+  "Rq": 2.2,
+  "loop_mA": 71.87856622297315,
+  "supply_mA": 28.634071692706733,
+  "Q": 32.65638720338741,
+  "range_mm_likely": 20.974790063701224,
+  "range_mm_spread": [
+   0.0,
+   27.774162742207412
+  ],
+  "zone_mm_likely": [
+   0.0,
+   35.0
+  ]
+ },
+ "reply_margin_min": 6.7294304593152265
+}

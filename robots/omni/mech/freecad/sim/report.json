@@ -1,0 +1,264 @@
+{
+ "kinematics": {
+  "wheels": [
+   {
+    "name": "wheel1_drive",
+    "pos_mm": [
+     14.16,
+     22.33,
+     12.0
+    ],
+    "axle": [
+     0.766,
+     0.6428,
+     -0.0
+    ],
+    "rolls_toward": [
+     0.6428,
+     -0.766,
+     0.0
+    ],
+    "radius_mm": 11.998
+   },
+   {
+    "name": "wheel2_drive",
+    "pos_mm": [
+     -26.42,
+     1.1,
+     12.0
+    ],
+    "axle": [
+     -0.9397,
+     0.342,
+     -0.0
+    ],
+    "rolls_toward": [
+     0.342,
+     0.9397,
+     -0.0
+    ],
+    "radius_mm": 11.998
+   },
+   {
+    "name": "wheel3_drive",
+    "pos_mm": [
+     12.26,
+     -23.43,
+     12.0
+    ],
+    "axle": [
+     0.1737,
+     -0.9848,
+     -0.0
+    ],
+    "rolls_toward": [
+     -0.9848,
+     -0.1737,
+     0.0
+    ],
+    "radius_mm": 11.998
+   }
+  ],
+  "J_rad_s_per_body_vel": [
+   [
+    53.5741,
+    -63.8435,
+    -2.1006
+   ],
+   [
+    28.5031,
+    78.3183,
+    -2.1006
+   ],
+   [
+    -82.0772,
+    -14.4747,
+    -2.1006
+   ]
+  ],
+  "Jinv": [
+   [
+    0.005142,
+    0.002736,
+    -0.007877
+   ],
+   [
+    -0.006127,
+    0.007517,
+    -0.001389
+   ],
+   [
+    -0.158682,
+    -0.158681,
+    -0.158681
+   ]
+  ],
+  "max_wheel_rad_s": 29.05974,
+  "note": "w = J @ [vx m/s, vy m/s, wz rad/s] (body frame: x forward, y left); [vx, vy, wz] = Jinv @ w"
+ },
+ "model": {
+  "bodies": 36,
+  "joints": 36,
+  "actuators": 5,
+  "dt_ms": 1.0,
+  "robot_mass_g": 146.6
+ },
+ "settle": {
+  "tilt_deg": 0.0,
+  "rest_speed_mm_s": 0.03,
+  "base_drop_mm": 1.01,
+  "pass": true
+ },
+ "wheels": [
+  {
+   "pos_mm": [
+    14.2,
+    22.3,
+    12.0
+   ],
+   "radius_mm": 11.99
+  },
+  {
+   "pos_mm": [
+    -26.4,
+    1.1,
+    12.0
+   ],
+   "radius_mm": 11.99
+  },
+  {
+   "pos_mm": [
+    12.3,
+    -23.4,
+    12.0
+   ],
+   "radius_mm": 11.99
+  }
+ ],
+ "drive": {
+  "forward": {
+   "command": [
+    0.15,
+    0,
+    0
+   ],
+   "achieved": [
+    0.145,
+    0.001,
+    0.0
+   ],
+   "error_pct": 3.2,
+   "max_tilt_deg": 0.18,
+   "peak_duty": 0.52,
+   "pass": true
+  },
+  "sideways": {
+   "command": [
+    0,
+    0.15,
+    0
+   ],
+   "achieved": [
+    0.002,
+    0.145,
+    -0.002
+   ],
+   "error_pct": 3.3,
+   "max_tilt_deg": 0.18,
+   "peak_duty": 0.51,
+   "pass": true
+  },
+  "diagonal": {
+   "command": [
+    0.1,
+    0.1,
+    0
+   ],
+   "achieved": [
+    0.093,
+    0.101,
+    -0.0
+   ],
+   "error_pct": 5.2,
+   "max_tilt_deg": 0.17,
+   "peak_duty": 0.47,
+   "pass": true
+  },
+  "spin": {
+   "command": [
+    0,
+    0,
+    3.0
+   ],
+   "achieved": [
+    0.0,
+    0.0,
+    2.997
+   ],
+   "error_pct": 0.1,
+   "max_tilt_deg": 0.07,
+   "peak_duty": 0.37,
+   "pass": true
+  },
+  "forward_with_ball": {
+   "command": [
+    0.15,
+    0,
+    0
+   ],
+   "achieved": [
+    0.145,
+    0.001,
+    -0.0
+   ],
+   "error_pct": 3.2,
+   "max_tilt_deg": 0.18,
+   "peak_duty": 0.51,
+   "pass": true
+  },
+  "sideways_with_ball": {
+   "command": [
+    0,
+    0.15,
+    0
+   ],
+   "achieved": [
+    0.002,
+    0.145,
+    0.003
+   ],
+   "error_pct": 3.7,
+   "max_tilt_deg": 0.18,
+   "peak_duty": 0.51,
+   "pass": true
+  }
+ },
+ "gripper": {
+  "target_deg": 60,
+  "final_deg": 59.71,
+  "overshoot_deg": 0.6,
+  "time_to_3deg_s": 0.095,
+  "pass": true
+ },
+ "kick": {
+  "charge_V": 24.0,
+  "cap_energy_mJ": 95.0,
+  "peak_A": 0.6,
+  "energy_used_mJ": 88.5,
+  "ball_speed_m_s": 1.295,
+  "ball_after_1s_m_s": 0.057,
+  "ball_rolled_1s_m": 0.397,
+  "efficiency_pct": 2.38,
+  "pass": true
+ },
+ "tip": {
+  "full_power_step_tilt_deg": 0.3,
+  "controller_start_tilt_deg": 0.2,
+  "pass": true
+ },
+ "speed": {
+  "steps_per_s": 2181,
+  "real_time_factor": 2.18
+ },
+ "passed": true
+}

@@ -1,0 +1,77 @@
+# Underglow on the NFC floor PCB, inner ring as a COMPLETE ring (approved 2D: bugbot_freecad/sketches/underglow_full_ring.png):
+# 7 WS2812B-2020 on r 8.5, 51.4 deg apart, no empty slot. Same copper pattern per LED as before (make_nfc_floor.py): 5 V
+# (inner) and GND (outer) lanes on the top copper at -+0.9, data on the line; LED, 100 nF and vias on the bottom.
+#   - the chain breaks in the gap at GAP_FEED: 5 V and data come in there on the TOP copper straight from J2
+#   - GND is fed into its (outer) lane through the gap at GAP_GND, on the bottom copper
+#   - the NFC antenna's 2 wires run on the top only down to r 12.6, then through 2 vias and on the bottom across the
+#     ring in the gap at GAP_NFC to their plated holes
+#   C:/Python312/python.exe kicad/lib/inner_ring_geom.py     (writes kicad/BugBot_NFCfloor/underglow.json)
+import json, math, os
+from shapely.geometry import LineString, Point, Polygon
+HERE = os.path.dirname(os.path.abspath(__file__))
+G = json.load(open(os.path.join(HERE, "..", "BugBot_NFCfloor", "floor_geom.json")))
+R, N, A0 = 8.5, 7, 10.2
+LANE_W, LANE_OFS = 0.4, 0.9
+U_UP, U_DN = 3.3, 2.3                                   # one LED's pattern along the ring (incl. via radii): upstream / downstream
+xy = lambda a, r=R: (r * math.cos(math.radians(a)), r * math.sin(math.radians(a)))
+mm2deg = lambda mm, r=R: math.degrees(mm / r)
+led_angs = [A0 + 360 / N * k for k in range(N)]
+# data runs counter-clockwise; the gaps' free arcs (between one LED's downstream end and the next one's upstream end)
+gaps = []
+for k in range(N):
+    a, b = led_angs[k], led_angs[(k + 1) % N] + (360 if k == N - 1 else 0)
+    lo, hi = a + mm2deg(U_DN), b - mm2deg(U_UP)
+    gaps.append(((lo + hi) / 2 % 360, lo % 360, hi % 360, (hi - lo)))
+near = lambda target: min(gaps, key=lambda g: abs(((g[0] - target) + 180) % 360 - 180))
+GAP_FEED, GAP_NFC = near(289.0), near(135.0)
+GAP_GND = near(241.0)
+assert len({GAP_FEED[0], GAP_NFC[0], GAP_GND[0]}) == 3
+gf_lo, gf_hi = GAP_FEED[1], GAP_FEED[2]
+A_DATA, A_5V = gf_lo + 1.6, gf_lo + 6.4                  # data enters at A_DATA, the 5 V lane begins at A_5V (radial entries, top copper)
+first = min(led_angs, key=lambda a: (a - gf_hi) % 360)
+order = sorted(led_angs, key=lambda a: (a - first) % 360)
+last = order[-1]
+A_END = last + mm2deg(1.85)                              # the lanes end just past the last LED's GND via (u +1.6)
+span = (A_END - A_DATA) % 360
+PATH = [xy(A_DATA + span * t / (N * 120)) for t in range(N * 120 + 1)]
+pl = LineString(PATH)
+lane_out = list(pl.offset_curve(-LANE_OFS, join_style=1).coords)          # right of a counter-clockwise path = outside
+lane_in = [p for p in pl.offset_curve(LANE_OFS, join_style=1).coords
+           if (math.degrees(math.atan2(p[1], p[0])) - A_5V) % 360 < (A_END - A_5V) % 360 + 0.01]   # starts at A_5V
+leds = [{"n": i + 1, "x": round(xy(a)[0], 4), "y": round(xy(a)[1], 4), "ang": round(a + 90, 3), "slot_deg": round(a % 360, 2)} for i, a in enumerate(order)]
+# NFC wires: the top part of each lead stays outside r 12.6; vias there; bottom across GAP_NFC (the two 1.0 apart) to the holes
+R_V = 12.6
+c = GAP_NFC[0]
+holes = [tuple(h) for h in G["wire_holes"]]                # (-1.27, 3.0), (1.27, 3.0)
+cut = []
+for k, lead in enumerate((G["lead_a"], G["lead_b"])):
+    pts = [tuple(p) for p in lead]
+    top = [p for p in pts if math.hypot(*p) > R_V]
+    # where the lead's straight run crosses r R_V
+    q0, q1 = top[-1], next(p for p in pts if math.hypot(*p) <= R_V)
+    t = 0.0
+    for i in range(200):
+        t = i / 199; p = (q0[0] + (q1[0] - q0[0]) * t, q0[1] + (q1[1] - q0[1]) * t)
+        if math.hypot(*p) <= R_V: break
+    cut.append((top + [p], p))
+# the via whose angle is smaller crosses at the smaller angle; that one goes to the hole further round (x > 0), over the top
+(ta, va), (tb, vb) = cut
+ang = lambda p: math.degrees(math.atan2(p[1], p[0])) % 360
+lo_lead, hi_lead = (0, 1) if ang(va) < ang(vb) else (1, 0)
+bottoms = [None, None]
+far_hole = max(holes, key=lambda h: h[0]); near_hole = min(holes, key=lambda h: h[0])
+for idx, dang, hole, via in ((lo_lead, -mm2deg(0.5), far_hole, cut[lo_lead][1]), (hi_lead, mm2deg(0.5), near_hole, cut[hi_lead][1])):
+    pts = [via, xy(c + dang, 10.6), xy(c + dang, 7.0)]
+    if hole is far_hole: pts += [(0.0, 5.0), hole]
+    else: pts += [hole]
+    bottoms[idx] = pts
+gnd_c = GAP_GND[0]
+chk = {"leds": len(leds), "spacing_mm": round(2 * math.pi * R / N, 2), "gap_mm": round(math.radians(GAP_FEED[3]) * R, 2),
+       "gap_feed_deg": round(GAP_FEED[0], 1), "gap_nfc_deg": round(GAP_NFC[0], 1), "gap_gnd_deg": round(GAP_GND[0], 1),
+       "nfc_cross_deg": [round(c - mm2deg(0.5), 1), round(c + mm2deg(0.5), 1)]}
+json.dump({"mode": "inner_full", "R": R, "N": len(leds), "leds": leds, "path": PATH, "feed": [], "bus": PATH,
+           "lane_a": lane_out, "lane_b": lane_in, "lane_w": LANE_W, "lane_nets": {"a": "GND", "b": "+5V"},
+           "a_data": A_DATA, "a_5v": A_5V, "gap_gnd": gnd_c,
+           "nfc_top": [cut[0][0], cut[1][0]], "nfc_bottom": bottoms, "nfc_vias": [cut[0][1], cut[1][1]], "check": chk},
+          open(os.path.join(HERE, "..", "BugBot_NFCfloor", "underglow.json"), "w"), indent=0)
+print(json.dumps(chk), "LED slots (data order):", [l["slot_deg"] for l in leds])

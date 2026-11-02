@@ -1,0 +1,155 @@
+(footprint "BatteryHolder_Keystone_1051_1xCR123A"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "Keystone 1051 THM holder, 1x CR123A / 16340, from drawing 1051 rev C: body 42.93 x 18.29 x 15.24 mm, contacts 37.82 apart (holes 1.19), locating peg hole 1.98 beside the + contact, 8.10 off the contact line")
+	(tags "battery holder CR123A 16340 Keystone 1051")
+	(property "Reference" "REF**"
+		(at 0 10.64 0)
+		(layer "F.SilkS")
+		(uuid "0696612c-83bf-4f84-8270-8f19beb77e6a")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "Keystone_1051"
+		(at 0 12.14 0)
+		(layer "F.Fab")
+		(uuid "55c275e3-b724-4726-85bb-8cab879209a0")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" "https://www.keyelco.com/userAssets/file/K75p27.pdf"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "0c2e18f2-5cbc-4335-8242-5be3ad86254c")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "8f89b121-df90-445a-b053-807ce022963c")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(attr through_hole)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_rect
+		(start -21.585 -9.265)
+		(end 21.585 9.265)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "d4802dc6-55e8-4c66-af2c-6253193254db")
+	)
+	(fp_rect
+		(start -21.965 -9.645)
+		(end 21.965 9.645)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "37f84e2d-6e5f-494e-96b1-e0d754f2f8f2")
+	)
+	(fp_rect
+		(start -21.465 -9.145)
+		(end 21.465 9.145)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "415c0eee-1991-41dc-9419-9fd697ebb22a")
+	)
+	(fp_text user "+"
+		(at -15.91 0 0)
+		(layer "F.SilkS")
+		(uuid "8afd0cfb-3b39-46ee-974b-9812f16b59dd")
+		(effects
+			(font
+				(size 1.5 1.5)
+				(thickness 0.2)
+			)
+		)
+	)
+	(fp_text user "-"
+		(at 15.91 0 0)
+		(layer "F.SilkS")
+		(uuid "548c963b-999e-4f94-aaa7-d6cdc884069b")
+		(effects
+			(font
+				(size 1.5 1.5)
+				(thickness 0.2)
+			)
+		)
+	)
+	(pad "" np_thru_hole circle
+		(at -18.91 -8.1)
+		(size 1.98 1.98)
+		(drill 1.98)
+		(layers "*.Cu" "*.Mask")
+		(uuid "6ded0880-0c5d-452d-a521-72ba12c9c364")
+	)
+	(pad "1" thru_hole rect
+		(at -18.91 0)
+		(size 2.2 2.2)
+		(drill 1.19)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "2d74d9ab-70e8-4bd5-99e7-4839f2a5d3bd")
+	)
+	(pad "2" thru_hole circle
+		(at 18.91 0)
+		(size 2.2 2.2)
+		(drill 1.19)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "c607a100-74e2-404a-98d5-c073a11a246c")
+	)
+	(embedded_fonts no)
+	(model "${KIPRJMOD}/../lib/3dmodels/lcsc/C238066.3dshapes/BAT-TH_L42.9-W18.3-H15.2-P37.82.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+	(model "${KIPRJMOD}/../lib/3dmodels/Cell_16340_unprotected.step"
+		(offset
+			(xyz 0 0 1.18)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)

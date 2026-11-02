@@ -1,0 +1,2353 @@
+diff --git a/api/CMakeLists.txt b/api/CMakeLists.txt
+index 994ac3e6..5b9b0842 100644
+--- a/api/CMakeLists.txt
++++ b/api/CMakeLists.txt
+@@ -32,6 +32,7 @@ set( KIAPI_PROTO_SRCS
+     board/board.proto
+     board/board_commands.proto
+     board/board_types.proto
++    board/router_commands.proto
+ 
+     schematic/schematic_types.proto
+     schematic/schematic_commands.proto
+diff --git a/api/proto/board/router_commands.proto b/api/proto/board/router_commands.proto
+new file mode 100644
+index 00000000..5c45dc62
+--- /dev/null
++++ b/api/proto/board/router_commands.proto
+@@ -0,0 +1,331 @@
++/*
++ * This program source code file is part of KiCad, a free EDA CAD application.
++ *
++ * Private extension (BugBot tooling): scripted access to the interactive
++ * push-and-shove router (PNS).  Not part of upstream KiCad.
++ *
++ * This program is free software: you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation, either version 3 of the License, or (at your
++ * option) any later version.
++ */
++
++syntax = "proto3";
++
++package kiapi.board.commands;
++
++import "common/types/base_types.proto";
++import "board/board_types.proto";
++
++enum RouterMode
++{
++  RTM_UNKNOWN    = 0;   // use the router's current setting
++  RTM_SHOVE      = 1;   // push-and-shove
++  RTM_WALKAROUND = 2;   // walk around obstacles
++  RTM_HIGHLIGHT  = 3;   // highlight collisions (mark obstacles); never moves other items
++}
++
++message RouteWaypoint
++{
++  kiapi.common.types.Vector2 position = 1;
++
++  // Layer to continue on from this point.  BL_UNKNOWN keeps the current layer.
++  // A change of layer places a via at this waypoint.
++  kiapi.board.types.BoardLayer layer = 2;
++}
++
++// Routes one track through the given waypoints with the interactive router, exactly as if
++// the user had clicked at each point with the router tool, and commits the result.
++// The first waypoint is the start (should be on a pad, track end or via of the net).
++message RouteTrack
++{
++  kiapi.common.types.DocumentSpecifier board = 1;
++
++  // Net name.  Optional if the start point is on a connected item.
++  string net = 2;
++
++  repeated RouteWaypoint points = 3;
++
++  // Start layer.  BL_UNKNOWN = layer of the item under the start point.
++  kiapi.board.types.BoardLayer layer = 4;
++
++  // Track width; 0 = use the net class / design rules.
++  kiapi.common.types.Distance width = 5;
++
++  // Via size for layer changes; 0 = use the net class / design rules.
++  kiapi.common.types.Distance via_diameter = 6;
++  kiapi.common.types.Distance via_drill = 7;
++
++  RouterMode mode = 8;
++
++  // If false (default), the route is discarded unless the last waypoint is reached.
++  bool allow_partial = 9;
++
++  // If true, do not commit; just report what would happen.
++  bool dry_run = 10;
++
++  // The router is fed intermediate cursor positions this far apart between waypoints (like mouse
++  // motion), so shoved items are pushed gradually instead of being jumped over.  0 = 0.1 mm.
++  kiapi.common.types.Distance step = 11;
++
++  // Route the net and its coupled net (USB_DP/USB_DN, X_P/X_N, X+/X-) as a differential pair.
++  // The waypoints are the pair's centreline; width is the pair's track width.
++  bool diff_pair = 12;
++  kiapi.common.types.Distance diff_pair_gap = 13;   // 0 = net class / rules
++}
++
++message RouterItemChange
++{
++  kiapi.common.types.KIID id = 1;
++  string type = 2;    // "track", "arc", "via"
++  string net = 3;
++}
++
++message RouterResult
++{
++  bool committed = 1;
++
++  // True when the route reached the last waypoint (or the drag reached the target).
++  bool completed = 2;
++
++  // Where the routed head actually ended.
++  kiapi.common.types.Vector2 reached = 3;
++
++  string message = 4;
++
++  repeated RouterItemChange added = 5;
++  repeated RouterItemChange removed = 6;
++  repeated RouterItemChange modified = 7;   // existing items moved (shoved)
++}
++
++// Drags a track segment or via with the router (shove / walkaround / highlight).
++message DragItem
++{
++  kiapi.common.types.DocumentSpecifier board = 1;
++
++  kiapi.common.types.KIID item = 2;
++
++  // Point on the item where it is grabbed.  Unset = the via centre / segment midpoint.
++  kiapi.common.types.Vector2 grab = 3;
++
++  kiapi.common.types.Vector2 target = 5;
++
++  RouterMode mode = 6;
++
++  // Free-angle drag (default: 45 degree drag, same as the 'D' hotkey).
++  bool free_angle = 7;
++
++  // Commit even if the result violates DRC (only meaningful in highlight mode).
++  bool force = 8;
++
++  bool dry_run = 9;
++
++  // Cursor step between grab and target (see RouteTrack.step).  0 = 0.1 mm.
++  kiapi.common.types.Distance step = 10;
++}
++
++// Runs the PNS optimizer (corner merging, pad-exit cleanup) over all tracks of the given nets.
++message OptimizeNets
++{
++  kiapi.common.types.DocumentSpecifier board = 1;
++
++  repeated string nets = 2;
++
++  // OPTIMIZER effort flags; 0 = MERGE_SEGMENTS | SMART_PADS | MERGE_OBTUSE.
++  int32 effort = 3;
++
++  bool keep_topology = 4;
++
++  bool dry_run = 5;
++
++  // Only lines with a segment inside this box are optimized; with an area and no nets, every net
++  // with tracks in the area is optimized.
++  kiapi.common.types.Box2 area = 6;
++}
++
++
++/*
++ * Phase 2: analysis and editing helpers
++ */
++
++message GetUnrouted
++{
++  kiapi.common.types.DocumentSpecifier board = 1;
++  repeated string nets = 2;     // empty = all nets
++}
++
++message UnroutedEndpoint
++{
++  kiapi.common.types.Vector2 position = 1;
++  kiapi.board.types.BoardLayer layer = 2;     // first copper layer of the item
++  kiapi.common.types.KIID item = 3;
++  string type = 4;                            // pad, via, track, arc, zone
++  string description = 5;                     // e.g. "U6.48"
++  repeated kiapi.board.types.BoardLayer layers = 6;   // copper layers of the item
++}
++
++message UnroutedLink
++{
++  string net = 1;
++  UnroutedEndpoint a = 2;
++  UnroutedEndpoint b = 3;
++  int64 length_nm = 4;
++}
++
++message UnroutedResponse
++{
++  repeated UnroutedLink links = 1;
++  int32 unconnected_count = 2;
++}
++
++enum ProbeKind
++{
++  PK_UNKNOWN = 0;
++  PK_POINT   = 1;   // a round dot of 'width' at 'start' on 'layer' (a track end)
++  PK_SEGMENT = 2;   // a track from 'start' to 'end'
++  PK_VIA     = 3;   // a through via at 'start'
++}
++
++// Would this track / via pass the router's clearance rules here, and how far is the nearest
++// obstacle?  Uses the router's own collision model (same rules as interactive routing:
++// tracks, vias, pads, holes, keepouts, board edge; zone fills are not obstacles).
++message ProbeClearance
++{
++  kiapi.common.types.DocumentSpecifier board = 1;
++  ProbeKind kind = 2;
++  kiapi.common.types.Vector2 start = 3;
++  kiapi.common.types.Vector2 end = 4;
++  kiapi.board.types.BoardLayer layer = 5;
++  string net = 6;                                   // the probe's net ("" = no net)
++  kiapi.common.types.Distance width = 7;            // 0 = net class
++  kiapi.common.types.Distance via_diameter = 8;     // 0 = rules
++  kiapi.common.types.Distance via_drill = 9;
++  kiapi.common.types.Distance search_radius = 10;   // 0 = 1 mm
++  int32 max_results = 11;                           // 0 = 10
++}
++
++message ProbeObstacle
++{
++  string kind = 1;          // pad, via, track, arc, hole, outline, keepout, ...
++  string net = 2;
++  kiapi.common.types.KIID item = 3;
++  string description = 4;
++  int64 distance_nm = 5;    // copper-to-copper gap
++  int64 required_nm = 6;    // clearance the rules ask for
++  int64 margin_nm = 7;      // distance - required (negative = violation)
++  kiapi.board.types.BoardLayer layer = 8;
++}
++
++message ProbeResult
++{
++  bool ok = 1;              // no collision under the rules
++  int64 min_margin_nm = 2;  // smallest margin over the obstacles found (search_radius if none)
++  repeated ProbeObstacle obstacles = 3;   // nearest first
++  string message = 4;
++}
++
++message GetZoneIslands
++{
++  kiapi.common.types.DocumentSpecifier board = 1;
++  repeated string nets = 2;     // empty = all copper zones
++}
++
++message ZoneIslandItem
++{
++  kiapi.common.types.KIID item = 1;
++  string type = 2;
++  string description = 3;
++}
++
++message ZoneIsland
++{
++  kiapi.common.types.KIID zone = 1;
++  string zone_name = 2;
++  string net = 3;
++  kiapi.board.types.BoardLayer layer = 4;
++  int32 index = 5;                 // outline index in the zone's fill on that layer
++  double area_mm2 = 6;
++  kiapi.common.types.Box2 bbox = 7;
++  bool isolated = 8;               // not connected to any pad of the net
++  bool single_connection = 9;
++  repeated ZoneIslandItem direct = 10;   // items touching this island
++  int32 cluster_pads = 11;               // pads reachable through this island
++  repeated string pads = 12;             // their names (first 30)
++  kiapi.common.types.Vector2 anchor = 13;  // a point inside the island
++}
++
++message ZoneIslandsResponse
++{
++  repeated ZoneIsland islands = 1;
++}
++
++message SetTeardrops
++{
++  kiapi.common.types.DocumentSpecifier board = 1;
++  bool enable = 2;              // false removes them
++  bool vias = 3;
++  bool pth_pads = 4;
++  bool smd_pads = 5;
++  bool track_to_track = 6;
++  repeated string nets = 7;     // empty = all
++}
++
++message TeardropsResponse
++{
++  int32 items_changed = 1;
++  int32 teardrop_zones = 2;
++}
++
++// Same as Tools > Update PCB from Schematic, from a KiCad netlist file
++// (kicad-cli sch export netlist --format kicadsexpr), so it works in stand-alone pcbnew.
++message UpdateFromNetlist
++{
++  kiapi.common.types.DocumentSpecifier board = 1;
++  string netlist_path = 2;
++  bool dry_run = 3;
++  bool relink_by_reference = 4;   // default false = match by symbol UUID
++  bool delete_unused_footprints = 5;
++  bool replace_footprints = 6;    // footprints whose lib id changed
++  bool update_fields = 7;
++  bool override_locks = 8;
++}
++
++message UpdateFromNetlistResponse
++{
++  bool applied = 1;
++  string report = 2;
++  int32 errors = 3;
++  int32 warnings = 4;
++}
++
++enum TuneMode
++{
++  TM_UNKNOWN = 0;
++  TM_SINGLE = 1;
++  TM_DIFF_PAIR = 2;
++  TM_DIFF_PAIR_SKEW = 3;
++}
++
++// Adds a tuning pattern (meanders) on a track, like the length tuning tool: from 'start' to 'end'
++// along the track the router places meanders to reach the target.
++message TuneLength
++{
++  kiapi.common.types.DocumentSpecifier board = 1;
++  kiapi.common.types.KIID item = 2;            // a track segment of the net
++  kiapi.common.types.Vector2 start = 3;
++  kiapi.common.types.Vector2 end = 4;
++  TuneMode mode = 5;
++  kiapi.common.types.Distance target = 6;      // target length (or skew); 0 = rules
++  kiapi.common.types.Distance tolerance = 7;   // +- around target; 0 = 0.1 mm
++  kiapi.common.types.Distance max_amplitude = 8;
++  kiapi.common.types.Distance spacing = 9;
++  bool dry_run = 10;
++}
++
++message TuneLengthResult
++{
++  bool committed = 1;
++  string status = 2;          // tuned, too_short, too_long
++  int64 length_nm = 3;        // tuned length (or skew) reported by the tuner
++  string message = 4;
++}
+diff --git a/pcbnew/CMakeLists.txt b/pcbnew/CMakeLists.txt
+index 97546f97..d957601f 100644
+--- a/pcbnew/CMakeLists.txt
++++ b/pcbnew/CMakeLists.txt
+@@ -532,9 +532,15 @@ set( PCBNEW_SCRIPTING_PYTHON_HELPERS
+ if( KICAD_IPC_API )
+     set( PCBNEW_SRCS ${PCBNEW_SRCS}
+         api/api_handler_pcb.cpp
++        api/api_handler_pcb_router.cpp
++        api/api_handler_pcb_tools.cpp
+         )
+ endif()
+ 
++# Private build: SWIG >= 4.4 no longer defines the Python 2 compatibility names used in the .i files
++set_property( SOURCE pcbnew_wrap.cxx ${CMAKE_CURRENT_BINARY_DIR}/pcbnew_wrap.cxx APPEND PROPERTY COMPILE_DEFINITIONS
++              PyInt_FromLong=PyLong_FromLong PyString_Check=PyUnicode_Check )
++
+ #Disable all warnings for the SWIG file
+ if( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
+     if( MSYS )
+diff --git a/pcbnew/api/api_handler_pcb.cpp b/pcbnew/api/api_handler_pcb.cpp
+index efc378e9..eb211d9c 100644
+--- a/pcbnew/api/api_handler_pcb.cpp
++++ b/pcbnew/api/api_handler_pcb.cpp
+@@ -127,6 +127,17 @@ API_HANDLER_PCB::API_HANDLER_PCB( PCB_EDIT_FRAME* aFrame ) :
+             &API_HANDLER_PCB::handleSetBoardEditorAppearanceSettings );
+     registerHandler<InjectDrcError, InjectDrcErrorResponse>(
+             &API_HANDLER_PCB::handleInjectDrcError );
++
++    registerHandler<RouteTrack, RouterResult>( &API_HANDLER_PCB::handleRouteTrack );
++    registerHandler<DragItem, RouterResult>( &API_HANDLER_PCB::handleDragItem );
++    registerHandler<OptimizeNets, RouterResult>( &API_HANDLER_PCB::handleOptimizeNets );
++    registerHandler<GetUnrouted, UnroutedResponse>( &API_HANDLER_PCB::handleGetUnrouted );
++    registerHandler<ProbeClearance, ProbeResult>( &API_HANDLER_PCB::handleProbeClearance );
++    registerHandler<GetZoneIslands, ZoneIslandsResponse>( &API_HANDLER_PCB::handleGetZoneIslands );
++    registerHandler<SetTeardrops, TeardropsResponse>( &API_HANDLER_PCB::handleSetTeardrops );
++    registerHandler<UpdateFromNetlist, UpdateFromNetlistResponse>(
++            &API_HANDLER_PCB::handleUpdateFromNetlist );
++    registerHandler<TuneLength, TuneLengthResult>( &API_HANDLER_PCB::handleTuneLength );
+ }
+ 
+ 
+diff --git a/pcbnew/api/api_handler_pcb.h b/pcbnew/api/api_handler_pcb.h
+index f4a0070c..3b1f31d0 100644
+--- a/pcbnew/api/api_handler_pcb.h
++++ b/pcbnew/api/api_handler_pcb.h
+@@ -26,6 +26,7 @@
+ #include <api/api_handler_editor.h>
+ #include <api/board/board_commands.pb.h>
+ #include <api/board/board_types.pb.h>
++#include <api/board/router_commands.pb.h>
+ #include <api/common/commands/editor_commands.pb.h>
+ #include <api/common/commands/project_commands.pb.h>
+ #include <kiid.h>
+@@ -145,6 +146,20 @@ private:
+ 
+     HANDLER_RESULT<Empty> handleRefillZones( const HANDLER_CONTEXT<RefillZones>& aCtx );
+ 
++    // Private extension: scripted push-and-shove router (api_handler_pcb_router.cpp)
++    HANDLER_RESULT<RouterResult> handleRouteTrack( const HANDLER_CONTEXT<RouteTrack>& aCtx );
++    HANDLER_RESULT<RouterResult> handleDragItem( const HANDLER_CONTEXT<DragItem>& aCtx );
++    HANDLER_RESULT<RouterResult> handleOptimizeNets( const HANDLER_CONTEXT<OptimizeNets>& aCtx );
++
++    // Private extension, phase 2 (api_handler_pcb_tools.cpp)
++    HANDLER_RESULT<UnroutedResponse> handleGetUnrouted( const HANDLER_CONTEXT<GetUnrouted>& aCtx );
++    HANDLER_RESULT<ProbeResult> handleProbeClearance( const HANDLER_CONTEXT<ProbeClearance>& aCtx );
++    HANDLER_RESULT<ZoneIslandsResponse> handleGetZoneIslands( const HANDLER_CONTEXT<GetZoneIslands>& aCtx );
++    HANDLER_RESULT<TeardropsResponse> handleSetTeardrops( const HANDLER_CONTEXT<SetTeardrops>& aCtx );
++    HANDLER_RESULT<UpdateFromNetlistResponse> handleUpdateFromNetlist(
++            const HANDLER_CONTEXT<UpdateFromNetlist>& aCtx );
++    HANDLER_RESULT<TuneLengthResult> handleTuneLength( const HANDLER_CONTEXT<TuneLength>& aCtx );
++
+     HANDLER_RESULT<commands::SavedDocumentResponse> handleSaveDocumentToString(
+                 const HANDLER_CONTEXT<commands::SaveDocumentToString>& aCtx );
+ 
+diff --git a/pcbnew/api/api_handler_pcb_router.cpp b/pcbnew/api/api_handler_pcb_router.cpp
+new file mode 100644
+index 00000000..9f305758
+--- /dev/null
++++ b/pcbnew/api/api_handler_pcb_router.cpp
+@@ -0,0 +1,322 @@
++/*
++ * This program source code file is part of KiCad, a free EDA CAD application.
++ *
++ * Private extension (BugBot tooling): IPC API handlers for the scripted
++ * push-and-shove router.  Not part of upstream KiCad.
++ *
++ * This program is free software: you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation, either version 3 of the License, or (at your
++ * option) any later version.
++ */
++
++#include <map>
++
++#include <api/api_handler_pcb.h>
++#include <api/api_enums.h>
++#include <api/api_utils.h>
++#include <board.h>
++#include <netinfo.h>
++#include <pcb_edit_frame.h>
++#include <pcb_track.h>
++#include <tool/tool_manager.h>
++#include <router/router_tool.h>
++#include <router/pns_routing_settings.h>
++
++
++namespace
++{
++
++struct TRACK_STATE
++{
++    KICAD_T      type;
++    VECTOR2I     start;
++    VECTOR2I     end;
++    PCB_LAYER_ID layer;
++    int          width;
++    int          net;
++    PCB_TRACK*   item;
++};
++
++
++std::map<KIID, TRACK_STATE> snapshotTracks( BOARD* aBoard )
++{
++    std::map<KIID, TRACK_STATE> state;
++
++    for( PCB_TRACK* t : aBoard->Tracks() )
++    {
++        state[t->m_Uuid] = { t->Type(), t->GetStart(), t->GetEnd(), t->GetLayer(), t->GetWidth(),
++                             t->GetNetCode(), t };
++    }
++
++    return state;
++}
++
++
++std::string trackTypeName( KICAD_T aType )
++{
++    switch( aType )
++    {
++    case PCB_VIA_T: return "via";
++    case PCB_ARC_T: return "arc";
++    default:        return "track";
++    }
++}
++
++
++void fillChange( RouterItemChange* aChange, const KIID& aId, const TRACK_STATE& aState,
++                 BOARD* aBoard )
++{
++    aChange->mutable_id()->set_value( aId.AsStdString() );
++    aChange->set_type( trackTypeName( aState.type ) );
++
++    if( NETINFO_ITEM* net = aBoard->FindNet( aState.net ) )
++        aChange->set_net( net->GetNetname().ToStdString() );
++}
++
++
++// Compares two snapshots and fills the added / removed / modified lists of the result
++void diffTracks( const std::map<KIID, TRACK_STATE>& aBefore,
++                 const std::map<KIID, TRACK_STATE>& aAfter, BOARD* aBoard, RouterResult& aResult )
++{
++    for( const auto& [id, after] : aAfter )
++    {
++        auto it = aBefore.find( id );
++
++        if( it == aBefore.end() )
++        {
++            fillChange( aResult.add_added(), id, after, aBoard );
++        }
++        else
++        {
++            const TRACK_STATE& b = it->second;
++
++            if( b.start != after.start || b.end != after.end || b.layer != after.layer
++                || b.width != after.width )
++            {
++                fillChange( aResult.add_modified(), id, after, aBoard );
++            }
++        }
++    }
++
++    for( const auto& [id, before] : aBefore )
++    {
++        if( !aAfter.count( id ) )
++            fillChange( aResult.add_removed(), id, before, aBoard );
++    }
++}
++
++
++int toPnsMode( kiapi::board::commands::RouterMode aMode )
++{
++    switch( aMode )
++    {
++    case RTM_SHOVE:      return PNS::RM_Shove;
++    case RTM_WALKAROUND: return PNS::RM_Walkaround;
++    case RTM_HIGHLIGHT:  return PNS::RM_MarkObstacles;
++    default:             return -1;
++    }
++}
++
++
++ApiResponseStatus makeError( ApiStatusCode aCode, const std::string& aMessage )
++{
++    ApiResponseStatus e;
++    e.set_status( aCode );
++    e.set_error_message( aMessage );
++    return e;
++}
++
++} // namespace
++
++
++HANDLER_RESULT<RouterResult> API_HANDLER_PCB::handleRouteTrack(
++        const HANDLER_CONTEXT<RouteTrack>& aCtx )
++{
++    if( std::optional<ApiResponseStatus> busy = checkForBusy() )
++        return tl::unexpected( *busy );
++
++    HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.board() );
++
++    if( !documentValidation )
++        return tl::unexpected( documentValidation.error() );
++
++    BOARD*        board = frame()->GetBoard();
++    NETINFO_ITEM* net = nullptr;
++
++    if( !aCtx.Request.net().empty() )
++    {
++        net = board->FindNet( wxString::FromUTF8( aCtx.Request.net() ) );
++
++        if( !net )
++            return tl::unexpected( makeError( ApiStatusCode::AS_BAD_REQUEST,
++                                              "Unknown net " + aCtx.Request.net() ) );
++    }
++
++    std::vector<ROUTER_API_WAYPOINT> points;
++
++    for( const RouteWaypoint& wp : aCtx.Request.points() )
++    {
++        ROUTER_API_WAYPOINT p;
++        p.pos = UnpackVector2( wp.position() );
++        p.layer = wp.layer() == kiapi::board::types::BL_UNKNOWN
++                          ? UNDEFINED_LAYER
++                          : FromProtoEnum<PCB_LAYER_ID>( wp.layer() );
++        points.push_back( p );
++    }
++
++    PCB_LAYER_ID layer = aCtx.Request.layer() == kiapi::board::types::BL_UNKNOWN
++                                 ? UNDEFINED_LAYER
++                                 : FromProtoEnum<PCB_LAYER_ID>( aCtx.Request.layer() );
++
++    ROUTER_TOOL* router = frame()->GetToolManager()->GetTool<ROUTER_TOOL>();
++
++    if( !router )
++        return tl::unexpected( makeError( ApiStatusCode::AS_UNHANDLED, "No router tool" ) );
++
++    std::map<KIID, TRACK_STATE> before = snapshotTracks( board );
++    ROUTER_API_RESULT           res;
++
++    router->ApiRouteTrack( net, points, layer, (int) aCtx.Request.width().value_nm(),
++                           (int) aCtx.Request.via_diameter().value_nm(),
++                           (int) aCtx.Request.via_drill().value_nm(),
++                           toPnsMode( aCtx.Request.mode() ), aCtx.Request.allow_partial(),
++                           aCtx.Request.dry_run(), (int) aCtx.Request.step().value_nm(),
++                           aCtx.Request.diff_pair(), (int) aCtx.Request.diff_pair_gap().value_nm(), res );
++
++    RouterResult response;
++    response.set_committed( res.committed );
++    response.set_completed( res.completed );
++    PackVector2( *response.mutable_reached(), res.reached );
++    response.set_message( res.message.ToStdString() );
++
++    if( res.committed )
++        diffTracks( before, snapshotTracks( board ), board, response );
++
++    return response;
++}
++
++
++HANDLER_RESULT<RouterResult> API_HANDLER_PCB::handleDragItem( const HANDLER_CONTEXT<DragItem>& aCtx )
++{
++    if( std::optional<ApiResponseStatus> busy = checkForBusy() )
++        return tl::unexpected( *busy );
++
++    HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.board() );
++
++    if( !documentValidation )
++        return tl::unexpected( documentValidation.error() );
++
++    BOARD*                     board = frame()->GetBoard();
++    std::optional<BOARD_ITEM*> item = getItemById( KIID( aCtx.Request.item().value() ) );
++
++    if( !item || !( *item )->IsConnected() )
++        return tl::unexpected( makeError( ApiStatusCode::AS_BAD_REQUEST,
++                                          "Item not found or not a track/via" ) );
++
++    ROUTER_TOOL* router = frame()->GetToolManager()->GetTool<ROUTER_TOOL>();
++
++    if( !router )
++        return tl::unexpected( makeError( ApiStatusCode::AS_UNHANDLED, "No router tool" ) );
++
++    VECTOR2I  grab;
++    VECTOR2I* grabPtr = nullptr;
++
++    if( aCtx.Request.has_grab() )
++    {
++        grab = UnpackVector2( aCtx.Request.grab() );
++        grabPtr = &grab;
++    }
++
++    std::map<KIID, TRACK_STATE> before = snapshotTracks( board );
++    ROUTER_API_RESULT           res;
++
++    router->ApiDragItem( static_cast<BOARD_CONNECTED_ITEM*>( *item ), grabPtr,
++                         UnpackVector2( aCtx.Request.target() ), toPnsMode( aCtx.Request.mode() ),
++                         aCtx.Request.free_angle(), aCtx.Request.force(), aCtx.Request.dry_run(),
++                         (int) aCtx.Request.step().value_nm(), res );
++
++    RouterResult response;
++    response.set_committed( res.committed );
++    response.set_completed( res.completed );
++    PackVector2( *response.mutable_reached(), res.reached );
++    response.set_message( res.message.ToStdString() );
++
++    if( res.committed )
++        diffTracks( before, snapshotTracks( board ), board, response );
++
++    return response;
++}
++
++
++HANDLER_RESULT<RouterResult> API_HANDLER_PCB::handleOptimizeNets(
++        const HANDLER_CONTEXT<OptimizeNets>& aCtx )
++{
++    if( std::optional<ApiResponseStatus> busy = checkForBusy() )
++        return tl::unexpected( *busy );
++
++    HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.board() );
++
++    if( !documentValidation )
++        return tl::unexpected( documentValidation.error() );
++
++    BOARD*                     board = frame()->GetBoard();
++    std::vector<NETINFO_ITEM*> nets;
++
++    for( const std::string& name : aCtx.Request.nets() )
++    {
++        NETINFO_ITEM* net = board->FindNet( wxString::FromUTF8( name ) );
++
++        if( !net )
++            return tl::unexpected( makeError( ApiStatusCode::AS_BAD_REQUEST,
++                                              "Unknown net " + name ) );
++
++        nets.push_back( net );
++    }
++
++    std::optional<BOX2I> area;
++
++    if( aCtx.Request.has_area() )
++    {
++        area = UnpackBox2( aCtx.Request.area() );
++        area->Normalize();
++
++        // An area without nets: every net with a track in it
++        if( nets.empty() )
++        {
++            std::set<NETINFO_ITEM*> inArea;
++
++            for( PCB_TRACK* track : board->Tracks() )
++            {
++                if( track->GetNetCode() > 0
++                    && ( area->Contains( track->GetStart() ) || area->Contains( track->GetEnd() ) ) )
++                {
++                    inArea.insert( track->GetNet() );
++                }
++            }
++
++            nets.assign( inArea.begin(), inArea.end() );
++        }
++    }
++
++    ROUTER_TOOL* router = frame()->GetToolManager()->GetTool<ROUTER_TOOL>();
++
++    if( !router )
++        return tl::unexpected( makeError( ApiStatusCode::AS_UNHANDLED, "No router tool" ) );
++
++    std::map<KIID, TRACK_STATE> before = snapshotTracks( board );
++    ROUTER_API_RESULT           res;
++
++    router->ApiOptimizeNets( nets, aCtx.Request.effort(), aCtx.Request.keep_topology(),
++                             aCtx.Request.dry_run(), area, res );
++
++    RouterResult response;
++    response.set_committed( res.committed );
++    response.set_completed( res.completed );
++    response.set_message( res.message.ToStdString() );
++
++    if( res.committed )
++        diffTracks( before, snapshotTracks( board ), board, response );
++
++    return response;
++}
+diff --git a/pcbnew/api/api_handler_pcb_tools.cpp b/pcbnew/api/api_handler_pcb_tools.cpp
+new file mode 100644
+index 00000000..3b68aaaf
+--- /dev/null
++++ b/pcbnew/api/api_handler_pcb_tools.cpp
+@@ -0,0 +1,652 @@
++/*
++ * This program source code file is part of KiCad, a free EDA CAD application.
++ *
++ * Private extension (BugBot tooling), phase 2: IPC API handlers for analysis and editing helpers
++ * (unrouted links, clearance probe, zone islands, teardrops, netlist update, length tuning).
++ * Not part of upstream KiCad.
++ *
++ * This program is free software: you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation, either version 3 of the License, or (at your
++ * option) any later version.
++ */
++
++#include <set>
++
++#include <api/api_handler_pcb.h>
++#include <api/api_enums.h>
++#include <api/api_utils.h>
++#include <board.h>
++#include <board_commit.h>
++#include <board_design_settings.h>
++#include <connectivity/connectivity_algo.h>
++#include <connectivity/connectivity_data.h>
++#include <connectivity/connectivity_items.h>
++#include <footprint.h>
++#include <pcb_track.h>
++#include <pcb_generator.h>
++#include <tool/edit_points.h>
++#include <generators/pcb_tuning_pattern.h>
++#include <netinfo.h>
++#include <netlist_reader/board_netlist_updater.h>
++#include <netlist_reader/netlist_reader.h>
++#include <netlist_reader/pcb_netlist.h>
++#include <pad.h>
++#include <pcb_edit_frame.h>
++#include <pcb_track.h>
++#include <ratsnest/ratsnest_data.h>
++#include <reporter.h>
++#include <richio.h>
++#include <router/router_tool.h>
++#include <teardrop/teardrop.h>
++#include <tool/tool_manager.h>
++#include <tools/generator_tool.h>
++#include <tools/pcb_actions.h>
++#include <zone.h>
++
++
++namespace
++{
++
++ApiResponseStatus toolsError( ApiStatusCode aCode, const std::string& aMessage )
++{
++    ApiResponseStatus e;
++    e.set_status( aCode );
++    e.set_error_message( aMessage );
++    return e;
++}
++
++
++std::string itemType( const BOARD_ITEM* aItem )
++{
++    switch( aItem->Type() )
++    {
++    case PCB_PAD_T:   return "pad";
++    case PCB_VIA_T:   return "via";
++    case PCB_TRACE_T: return "track";
++    case PCB_ARC_T:   return "arc";
++    case PCB_ZONE_T:  return "zone";
++    default:          return "item";
++    }
++}
++
++
++std::string itemDescription( const BOARD_ITEM* aItem )
++{
++    if( aItem->Type() == PCB_PAD_T )
++    {
++        const PAD* pad = static_cast<const PAD*>( aItem );
++
++        if( const FOOTPRINT* fp = pad->GetParentFootprint() )
++            return ( fp->GetReference() + wxT( "." ) + pad->GetNumber() ).ToStdString();
++
++        return ( wxT( "pad " ) + pad->GetNumber() ).ToStdString();
++    }
++
++    if( aItem->Type() == PCB_ZONE_T )
++    {
++        const ZONE* zone = static_cast<const ZONE*>( aItem );
++        return ( wxT( "zone " ) + zone->GetZoneName() ).ToStdString();
++    }
++
++    return itemType( aItem );
++}
++
++
++LSEQ copperLayers( const BOARD* aBoard, const BOARD_ITEM* aItem )
++{
++    return LSET( aItem->GetLayerSet() & LSET::AllCuMask( aBoard->GetCopperLayerCount() ) ).CuStack();
++}
++
++
++void fillEndpoint( UnroutedEndpoint* aOut, const CN_ANCHOR& aAnchor, const BOARD* aBoard )
++{
++    PackVector2( *aOut->mutable_position(), aAnchor.Pos() );
++
++    BOARD_CONNECTED_ITEM* item = aAnchor.Parent();
++
++    if( !item )
++        return;
++
++    aOut->mutable_item()->set_value( item->m_Uuid.AsStdString() );
++    aOut->set_type( itemType( item ) );
++    aOut->set_description( itemDescription( item ) );
++
++    LSEQ layers = copperLayers( aBoard, item );
++
++    // For a zone the anchor belongs to one layer of it
++    if( item->Type() == PCB_ZONE_T && aAnchor.Item() )
++        layers = { aAnchor.Item()->GetBoardLayer() };
++
++    for( PCB_LAYER_ID layer : layers )
++        aOut->add_layers( ToProtoEnum<PCB_LAYER_ID, kiapi::board::types::BoardLayer>( layer ) );
++
++    if( !layers.empty() )
++        aOut->set_layer( ToProtoEnum<PCB_LAYER_ID, kiapi::board::types::BoardLayer>( layers.front() ) );
++}
++
++
++std::optional<ApiResponseStatus> resolveNets( BOARD* aBoard, const google::protobuf::RepeatedPtrField<std::string>& aNames,
++                                              std::vector<NETINFO_ITEM*>& aNets )
++{
++    for( const std::string& name : aNames )
++    {
++        NETINFO_ITEM* net = aBoard->FindNet( wxString::FromUTF8( name ) );
++
++        if( !net )
++            return toolsError( ApiStatusCode::AS_BAD_REQUEST, "Unknown net " + name );
++
++        aNets.push_back( net );
++    }
++
++    return std::nullopt;
++}
++
++} // namespace
++
++
++HANDLER_RESULT<UnroutedResponse> API_HANDLER_PCB::handleGetUnrouted( const HANDLER_CONTEXT<GetUnrouted>& aCtx )
++{
++    HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.board() );
++
++    if( !documentValidation )
++        return tl::unexpected( documentValidation.error() );
++
++    BOARD*                     board = frame()->GetBoard();
++    std::vector<NETINFO_ITEM*> nets;
++
++    if( std::optional<ApiResponseStatus> err = resolveNets( board, aCtx.Request.nets(), nets ) )
++        return tl::unexpected( *err );
++
++    if( nets.empty() )
++    {
++        for( NETINFO_ITEM* net : board->GetNetInfo() )
++        {
++            if( net->GetNetCode() > 0 )
++                nets.push_back( net );
++        }
++    }
++
++    std::shared_ptr<CONNECTIVITY_DATA> conn = board->GetConnectivity();
++    UnroutedResponse                   response;
++
++    for( NETINFO_ITEM* net : nets )
++    {
++        RN_NET* rn = conn->GetRatsnestForNet( net->GetNetCode() );
++
++        if( !rn )
++            continue;
++
++        for( const CN_EDGE& edge : rn->GetEdges() )
++        {
++            std::shared_ptr<const CN_ANCHOR> a = edge.GetSourceNode();
++            std::shared_ptr<const CN_ANCHOR> b = edge.GetTargetNode();
++
++            if( !a || !b || a->Dirty() || b->Dirty() )
++                continue;
++
++            UnroutedLink* link = response.add_links();
++            link->set_net( net->GetNetname().ToStdString() );
++            fillEndpoint( link->mutable_a(), *a, board );
++            fillEndpoint( link->mutable_b(), *b, board );
++            link->set_length_nm( (int64_t) ( a->Pos() - b->Pos() ).EuclideanNorm() );
++        }
++    }
++
++    response.set_unconnected_count( (int) conn->GetUnconnectedCount( false ) );
++    return response;
++}
++
++
++HANDLER_RESULT<ProbeResult> API_HANDLER_PCB::handleProbeClearance( const HANDLER_CONTEXT<ProbeClearance>& aCtx )
++{
++    if( std::optional<ApiResponseStatus> busy = checkForBusy() )
++        return tl::unexpected( *busy );
++
++    HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.board() );
++
++    if( !documentValidation )
++        return tl::unexpected( documentValidation.error() );
++
++    BOARD*        board = frame()->GetBoard();
++    NETINFO_ITEM* net = nullptr;
++
++    if( !aCtx.Request.net().empty() )
++    {
++        net = board->FindNet( wxString::FromUTF8( aCtx.Request.net() ) );
++
++        if( !net )
++            return tl::unexpected( toolsError( ApiStatusCode::AS_BAD_REQUEST, "Unknown net " + aCtx.Request.net() ) );
++    }
++
++    int kind = aCtx.Request.kind() == PK_SEGMENT ? 2 : aCtx.Request.kind() == PK_VIA ? 3 : 1;
++
++    PCB_LAYER_ID layer = aCtx.Request.layer() == kiapi::board::types::BL_UNKNOWN
++                                 ? F_Cu
++                                 : FromProtoEnum<PCB_LAYER_ID>( aCtx.Request.layer() );
++
++    ROUTER_TOOL* router = frame()->GetToolManager()->GetTool<ROUTER_TOOL>();
++
++    if( !router )
++        return tl::unexpected( toolsError( ApiStatusCode::AS_UNHANDLED, "No router tool" ) );
++
++    ROUTER_API_PROBE res;
++
++    if( !router->ApiProbeClearance( kind, UnpackVector2( aCtx.Request.start() ), UnpackVector2( aCtx.Request.end() ),
++                                    layer, net, (int) aCtx.Request.width().value_nm(),
++                                    (int) aCtx.Request.via_diameter().value_nm(),
++                                    (int) aCtx.Request.via_drill().value_nm(),
++                                    (int) aCtx.Request.search_radius().value_nm(), aCtx.Request.max_results(), res ) )
++    {
++        return tl::unexpected( toolsError( ApiStatusCode::AS_BUSY, res.message.ToStdString() ) );
++    }
++
++    ProbeResult response;
++    response.set_ok( res.ok );
++    response.set_min_margin_nm( res.minMargin );
++    response.set_message( res.message.ToStdString() );
++
++    for( const ROUTER_API_OBSTACLE& o : res.obstacles )
++    {
++        ProbeObstacle* out = response.add_obstacles();
++        out->set_kind( o.kind.ToStdString() );
++        out->set_net( o.net.ToStdString() );
++        out->mutable_item()->set_value( o.id.AsStdString() );
++        out->set_description( o.description.ToStdString() );
++        out->set_distance_nm( o.distance );
++        out->set_required_nm( o.required );
++        out->set_margin_nm( o.distance - o.required );
++
++        if( o.layer != UNDEFINED_LAYER )
++            out->set_layer( ToProtoEnum<PCB_LAYER_ID, kiapi::board::types::BoardLayer>( o.layer ) );
++    }
++
++    return response;
++}
++
++
++HANDLER_RESULT<ZoneIslandsResponse> API_HANDLER_PCB::handleGetZoneIslands(
++        const HANDLER_CONTEXT<GetZoneIslands>& aCtx )
++{
++    HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.board() );
++
++    if( !documentValidation )
++        return tl::unexpected( documentValidation.error() );
++
++    BOARD*                     board = frame()->GetBoard();
++    std::vector<NETINFO_ITEM*> nets;
++
++    if( std::optional<ApiResponseStatus> err = resolveNets( board, aCtx.Request.nets(), nets ) )
++        return tl::unexpected( *err );
++
++    std::set<NETINFO_ITEM*> netFilter( nets.begin(), nets.end() );
++
++    std::shared_ptr<CN_CONNECTIVITY_ALGO> algo = board->GetConnectivity()->GetConnectivityAlgo();
++    const CN_CONNECTIVITY_ALGO::CLUSTERS  clusters =
++            algo->SearchClusters( CN_CONNECTIVITY_ALGO::CSM_CONNECTIVITY_CHECK );
++
++    std::map<const CN_ITEM*, std::shared_ptr<CN_CLUSTER>> clusterOf;
++
++    for( const std::shared_ptr<CN_CLUSTER>& cluster : clusters )
++    {
++        for( CN_ITEM* item : *cluster )
++            clusterOf[item] = cluster;
++    }
++
++    // Zone layer items by (zone, layer, outline)
++    std::map<std::tuple<const ZONE*, PCB_LAYER_ID, int>, CN_ZONE_LAYER*> zoneItems;
++
++    for( CN_ITEM* item : algo->ItemList() )
++    {
++        if( item->Valid() && item->Parent() && item->Parent()->Type() == PCB_ZONE_T )
++        {
++            CN_ZONE_LAYER* z = static_cast<CN_ZONE_LAYER*>( item );
++            zoneItems[{ static_cast<const ZONE*>( item->Parent() ), z->GetBoardLayer(), z->SubpolyIndex() }] = z;
++        }
++    }
++
++    ZoneIslandsResponse response;
++
++    for( ZONE* zone : board->Zones() )
++    {
++        if( zone->GetIsRuleArea() || zone->IsTeardropArea() || !zone->IsOnCopperLayer() )
++            continue;
++
++        if( !netFilter.empty() && !netFilter.count( zone->GetNet() ) )
++            continue;
++
++        for( PCB_LAYER_ID layer : LSET( zone->GetLayerSet() & LSET::AllCuMask( board->GetCopperLayerCount() ) ).CuStack() )
++        {
++            std::shared_ptr<SHAPE_POLY_SET> fill = zone->GetFilledPolysList( layer );
++
++            if( !fill )
++                continue;
++
++            for( int idx = 0; idx < fill->OutlineCount(); idx++ )
++            {
++                ZoneIsland* island = response.add_islands();
++                island->mutable_zone()->set_value( zone->m_Uuid.AsStdString() );
++                island->set_zone_name( zone->GetZoneName().ToStdString() );
++                island->set_net( zone->GetNetname().ToStdString() );
++                island->set_layer( ToProtoEnum<PCB_LAYER_ID, kiapi::board::types::BoardLayer>( layer ) );
++                island->set_index( idx );
++
++                double area = fill->Outline( idx ).Area();
++
++                for( int h = 0; h < fill->HoleCount( idx ); h++ )
++                    area -= fill->Hole( idx, h ).Area();
++
++                island->set_area_mm2( area / ( pcbIUScale.IU_PER_MM * pcbIUScale.IU_PER_MM ) );
++                PackBox2( *island->mutable_bbox(), fill->Outline( idx ).BBox() );
++                PackVector2( *island->mutable_anchor(), fill->Outline( idx ).CPoint( 0 ) );
++
++                auto it = zoneItems.find( { zone, layer, idx } );
++
++                if( it == zoneItems.end() )
++                {
++                    island->set_isolated( true );
++                    continue;
++                }
++
++                CN_ZONE_LAYER*     z = it->second;
++                std::set<const BOARD_ITEM*> directSeen;
++
++                island->set_single_connection( z->HasSingleConnection() );
++
++                for( CN_ITEM* c : z->ConnectedItems() )
++                {
++                    const BOARD_CONNECTED_ITEM* parent = c->Parent();
++
++                    if( !parent || parent == zone || directSeen.count( parent ) )
++                        continue;
++
++                    directSeen.insert( parent );
++
++                    ZoneIslandItem* d = island->add_direct();
++                    d->mutable_item()->set_value( parent->m_Uuid.AsStdString() );
++                    d->set_type( itemType( parent ) );
++                    d->set_description( itemDescription( parent ) );
++                }
++
++                auto cl = clusterOf.find( z );
++
++                if( cl == clusterOf.end() )
++                {
++                    island->set_isolated( true );
++                    continue;
++                }
++
++                island->set_isolated( cl->second->IsOrphaned() );
++
++                std::set<const BOARD_ITEM*> pads;
++
++                for( CN_ITEM* ci : *cl->second )
++                {
++                    if( ci->Parent() && ci->Parent()->Type() == PCB_PAD_T && !pads.count( ci->Parent() ) )
++                    {
++                        pads.insert( ci->Parent() );
++
++                        if( island->pads_size() < 30 )
++                            island->add_pads( itemDescription( ci->Parent() ) );
++                    }
++                }
++
++                island->set_cluster_pads( (int) pads.size() );
++            }
++        }
++    }
++
++    return response;
++}
++
++
++HANDLER_RESULT<TeardropsResponse> API_HANDLER_PCB::handleSetTeardrops( const HANDLER_CONTEXT<SetTeardrops>& aCtx )
++{
++    if( std::optional<ApiResponseStatus> busy = checkForBusy() )
++        return tl::unexpected( *busy );
++
++    HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.board() );
++
++    if( !documentValidation )
++        return tl::unexpected( documentValidation.error() );
++
++    BOARD*                     board = frame()->GetBoard();
++    std::vector<NETINFO_ITEM*> nets;
++
++    if( std::optional<ApiResponseStatus> err = resolveNets( board, aCtx.Request.nets(), nets ) )
++        return tl::unexpected( *err );
++
++    std::set<NETINFO_ITEM*> netFilter( nets.begin(), nets.end() );
++    bool                    enable = aCtx.Request.enable();
++    int                     changed = 0;
++    BOARD_COMMIT            commit( frame() );
++
++    auto visit =
++            [&]( BOARD_CONNECTED_ITEM* aItem, TEARDROP_PARAMETERS& aParams )
++            {
++                if( !netFilter.empty() && !netFilter.count( aItem->GetNet() ) )
++                    return;
++
++                if( aParams.m_Enabled == enable )
++                    return;
++
++                commit.Modify( aItem );
++                aParams.m_Enabled = enable;
++                changed++;
++            };
++
++    if( aCtx.Request.vias() )
++    {
++        for( PCB_TRACK* track : board->Tracks() )
++        {
++            if( track->Type() == PCB_VIA_T )
++                visit( track, static_cast<PCB_VIA*>( track )->GetTeardropParams() );
++        }
++    }
++
++    for( FOOTPRINT* fp : board->Footprints() )
++    {
++        for( PAD* pad : fp->Pads() )
++        {
++            bool pth = pad->GetAttribute() == PAD_ATTRIB::PTH;
++            bool smd = pad->GetAttribute() == PAD_ATTRIB::SMD || pad->GetAttribute() == PAD_ATTRIB::CONN;
++
++            if( ( pth && aCtx.Request.pth_pads() ) || ( smd && aCtx.Request.smd_pads() ) )
++                visit( pad, pad->GetTeardropParams() );
++        }
++    }
++
++    if( aCtx.Request.track_to_track() )
++    {
++        TEARDROP_PARAMETERS* target = board->GetDesignSettings().GetTeadropParamsList()->GetParameters( TARGET_TRACK );
++        TEARDROP_MANAGER     mgr( board, frame()->GetToolManager() );
++
++        mgr.DeleteTrackToTrackTeardrops( commit );
++        mgr.BuildTrackCaches();
++        target->m_Enabled = enable;
++
++        if( enable )
++            mgr.AddTeardropsOnTracks( commit, nullptr, true );
++    }
++
++    commit.Push( _( "Edit Teardrops (API)" ), SKIP_TEARDROPS );
++
++    TEARDROP_MANAGER teardropMgr( board, frame()->GetToolManager() );
++    BOARD_COMMIT     commit2( frame() );
++    teardropMgr.UpdateTeardrops( commit2, nullptr, nullptr, true );
++    commit2.Push( _( "Edit Teardrops (API)" ), SKIP_TEARDROPS | APPEND_UNDO );
++
++    int teardrops = 0;
++
++    for( ZONE* zone : board->Zones() )
++    {
++        if( zone->IsTeardropArea() )
++            teardrops++;
++    }
++
++    TeardropsResponse response;
++    response.set_items_changed( changed );
++    response.set_teardrop_zones( teardrops );
++    return response;
++}
++
++
++HANDLER_RESULT<UpdateFromNetlistResponse> API_HANDLER_PCB::handleUpdateFromNetlist(
++        const HANDLER_CONTEXT<UpdateFromNetlist>& aCtx )
++{
++    if( std::optional<ApiResponseStatus> busy = checkForBusy() )
++        return tl::unexpected( *busy );
++
++    HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.board() );
++
++    if( !documentValidation )
++        return tl::unexpected( documentValidation.error() );
++
++    NETLIST netlist;
++
++    try
++    {
++        FILE_LINE_READER*    reader = new FILE_LINE_READER( wxString::FromUTF8( aCtx.Request.netlist_path() ) );
++        KICAD_NETLIST_READER netlistReader( reader, &netlist );
++        netlistReader.LoadNetlist();
++    }
++    catch( const IO_ERROR& e )
++    {
++        return tl::unexpected( toolsError( ApiStatusCode::AS_BAD_REQUEST,
++                                           "Cannot read netlist: " + e.What().ToStdString() ) );
++    }
++
++    bool dryRun = aCtx.Request.dry_run();
++
++    netlist.SetFindByTimeStamp( !aCtx.Request.relink_by_reference() );
++    netlist.SetReplaceFootprints( aCtx.Request.replace_footprints() );
++
++    if( !dryRun )
++    {
++        frame()->GetToolManager()->DeactivateTool();
++        frame()->GetToolManager()->RunAction( ACTIONS::selectionClear );
++    }
++
++    WX_STRING_REPORTER    reporter;
++    BOARD_NETLIST_UPDATER updater( frame(), frame()->GetBoard() );
++
++    updater.SetReporter( &reporter );
++    updater.SetIsDryRun( dryRun );
++    updater.SetLookupByTimestamp( !aCtx.Request.relink_by_reference() );
++    updater.SetDeleteUnusedFootprints( aCtx.Request.delete_unused_footprints() );
++    updater.SetReplaceFootprints( aCtx.Request.replace_footprints() );
++    updater.SetOverrideLocks( aCtx.Request.override_locks() );
++    updater.SetUpdateFields( aCtx.Request.update_fields() );
++    bool ok = updater.UpdateNetlist( netlist );
++
++    if( !dryRun )
++    {
++        bool runDragCommand = false;
++        frame()->OnNetlistChanged( updater, &runDragCommand );
++    }
++
++    UpdateFromNetlistResponse response;
++    response.set_applied( ok && !dryRun );
++    response.set_report( reporter.GetMessages().ToStdString() );
++    return response;
++}
++
++
++HANDLER_RESULT<TuneLengthResult> API_HANDLER_PCB::handleTuneLength( const HANDLER_CONTEXT<TuneLength>& aCtx )
++{
++    if( std::optional<ApiResponseStatus> busy = checkForBusy() )
++        return tl::unexpected( *busy );
++
++    HANDLER_RESULT<bool> documentValidation = validateDocument( aCtx.Request.board() );
++
++    if( !documentValidation )
++        return tl::unexpected( documentValidation.error() );
++
++    std::optional<BOARD_ITEM*> item = getItemById( KIID( aCtx.Request.item().value() ) );
++
++    if( !item || ( ( *item )->Type() != PCB_TRACE_T && ( *item )->Type() != PCB_ARC_T ) )
++        return tl::unexpected( toolsError( ApiStatusCode::AS_BAD_REQUEST, "Item not found or not a track" ) );
++
++    PCB_TRACK*      track = static_cast<PCB_TRACK*>( *item );
++    GENERATOR_TOOL* generatorTool = frame()->GetToolManager()->GetTool<GENERATOR_TOOL>();
++
++    if( !generatorTool )
++        return tl::unexpected( toolsError( ApiStatusCode::AS_UNHANDLED, "No generator tool" ) );
++
++    LENGTH_TUNING_MODE mode = aCtx.Request.mode() == TM_DIFF_PAIR        ? LENGTH_TUNING_MODE::DIFF_PAIR
++                              : aCtx.Request.mode() == TM_DIFF_PAIR_SKEW ? LENGTH_TUNING_MODE::DIFF_PAIR_SKEW
++                                                                         : LENGTH_TUNING_MODE::SINGLE;
++
++    frame()->SetActiveLayer( track->GetLayer() );
++
++    PCB_TUNING_PATTERN* pattern = PCB_TUNING_PATTERN::CreateNew( generatorTool, frame(), track, mode );
++
++    if( !pattern )
++        return tl::unexpected( toolsError( ApiStatusCode::AS_BAD_REQUEST, "Cannot tune this track" ) );
++
++    int target = (int) aCtx.Request.target().value_nm();
++    int tol = aCtx.Request.tolerance().value_nm() > 0 ? (int) aCtx.Request.tolerance().value_nm()
++                                                      : pcbIUScale.mmToIU( 0.1 );
++
++    if( target > 0 )
++    {
++        MINOPTMAX<int> range;
++        range.SetMin( target - tol );
++        range.SetOpt( target );
++        range.SetMax( target + tol );
++
++        if( mode == LENGTH_TUNING_MODE::DIFF_PAIR_SKEW )
++            pattern->GetSettings().SetTargetSkew( range );
++        else
++            pattern->GetSettings().SetTargetLength( range );
++
++        pattern->SetOverrideCustomRules( true );
++    }
++
++    if( aCtx.Request.max_amplitude().value_nm() > 0 )
++        pattern->SetMaxAmplitude( (int) aCtx.Request.max_amplitude().value_nm() );
++
++    if( aCtx.Request.spacing().value_nm() > 0 )
++        pattern->SetSpacing( (int) aCtx.Request.spacing().value_nm() );
++
++    // Snap start / end onto the track
++    auto snap =
++            [&]( const VECTOR2I& aP ) -> VECTOR2I
++            {
++                int      dist = 0;
++                VECTOR2I closest = aP;
++                track->GetEffectiveShape()->Collide( aP, std::numeric_limits<int>::max() / 2, &dist, &closest );
++                return closest;
++            };
++
++    pattern->SetPosition( snap( UnpackVector2( aCtx.Request.start() ) ) );
++    pattern->SetEnd( snap( UnpackVector2( aCtx.Request.end() ) ) );
++    pattern->UpdateSideFromEnd();
++
++    BOARD_COMMIT commit( frame() );
++    BOARD*       board = frame()->GetBoard();
++
++    pattern->EditStart( generatorTool, board, &commit );
++    pattern->Update( generatorTool, board, &commit );
++
++    TuneLengthResult response;
++    response.set_length_nm( pattern->GetTuningLengthResult() );
++
++    switch( pattern->GetTuningStatusResult() )
++    {
++    case PNS::MEANDER_PLACER_BASE::TOO_SHORT: response.set_status( "too_short" ); break;
++    case PNS::MEANDER_PLACER_BASE::TOO_LONG:  response.set_status( "too_long" ); break;
++    default:                                  response.set_status( "tuned" ); break;
++    }
++
++    pattern->EditFinish( generatorTool, board, &commit );
++    commit.Push( _( "Tune (API)" ) );
++
++    // A dry run is the real thing undone: cancelling a half-built pattern is not safe
++    if( aCtx.Request.dry_run() )
++        frame()->GetToolManager()->RunAction( ACTIONS::undo );
++    else
++        response.set_committed( true );
++
++    return response;
++}
+diff --git a/pcbnew/generators/pcb_tuning_pattern.h b/pcbnew/generators/pcb_tuning_pattern.h
+index 20246742..9060f791 100644
+--- a/pcbnew/generators/pcb_tuning_pattern.h
++++ b/pcbnew/generators/pcb_tuning_pattern.h
+@@ -427,6 +427,10 @@ public:
+     // Update the initial side one time at EditStart based on m_end.
+     void UpdateSideFromEnd() { m_updateSideFromEnd = true; }
+ 
++    // Private extension (scripted tuning): results of the last Update()
++    long long GetTuningLengthResult() const { return m_tuningLength; }
++    PNS::MEANDER_PLACER_BASE::TUNING_STATUS GetTuningStatusResult() const { return m_tuningStatus; }
++
+     PNS::MEANDER_SIDE GetInitialSide() const { return m_settings.m_initialSide; }
+     void              SetInitialSide( PNS::MEANDER_SIDE aValue ) { m_settings.m_initialSide = aValue; }
+ 
+diff --git a/pcbnew/router/CMakeLists.txt b/pcbnew/router/CMakeLists.txt
+index e1c1b6ee..86134b98 100644
+--- a/pcbnew/router/CMakeLists.txt
++++ b/pcbnew/router/CMakeLists.txt
+@@ -57,6 +57,7 @@ set( PCBNEW_PNS_SRCS
+     router_preview_item.cpp
+     router_status_view_item.cpp
+     router_tool.cpp
++    router_tool_api.cpp
+ )
+ 
+ 
+diff --git a/pcbnew/router/router_tool.h b/pcbnew/router/router_tool.h
+index 492b164f..ce04cb11 100644
+--- a/pcbnew/router/router_tool.h
++++ b/pcbnew/router/router_tool.h
+@@ -26,6 +26,42 @@
+ #include "pns_tool_base.h"
+ 
+ class PCB_SELECTION_TOOL;
++class NETINFO_ITEM;
++class BOARD_CONNECTED_ITEM;
++
++/// Scripted router access (private BugBot extension, used by the IPC API).
++struct ROUTER_API_WAYPOINT
++{
++    VECTOR2I     pos;
++    PCB_LAYER_ID layer = UNDEFINED_LAYER;   ///< layer to continue on; a change places a via here
++};
++
++struct ROUTER_API_OBSTACLE
++{
++    wxString     kind;
++    wxString     net;
++    wxString     description;
++    KIID         id = niluuid;
++    int          distance = 0;
++    int          required = 0;
++    PCB_LAYER_ID layer = UNDEFINED_LAYER;
++};
++
++struct ROUTER_API_PROBE
++{
++    bool                             ok = false;
++    int                              minMargin = 0;
++    std::vector<ROUTER_API_OBSTACLE> obstacles;
++    wxString                         message;
++};
++
++struct ROUTER_API_RESULT
++{
++    bool     committed = false;
++    bool     completed = false;
++    VECTOR2I reached;
++    wxString message;
++};
+ 
+ class ROUTER_TOOL : public PNS::TOOL_BASE
+ {
+@@ -69,6 +105,40 @@ public:
+ 
+     void UpdateMessagePanel();
+ 
++    /**
++     * Scripted equivalents of the interactive router (no mouse, synchronous).
++     * @param aMode is a PNS::PNS_MODE, or -1 to keep the current router mode.
++     */
++    bool ApiRouteTrack( NETINFO_ITEM* aNet, const std::vector<ROUTER_API_WAYPOINT>& aPoints,
++                        PCB_LAYER_ID aLayer, int aWidth, int aViaDiameter, int aViaDrill,
++                        int aMode, bool aAllowPartial, bool aDryRun, int aStep,
++                        bool aDiffPair, int aDiffPairGap, ROUTER_API_RESULT& aResult );
++
++    bool ApiDragItem( BOARD_CONNECTED_ITEM* aItem, const VECTOR2I* aGrab, const VECTOR2I& aTarget,
++                      int aMode, bool aFreeAngle, bool aForce, bool aDryRun, int aStep,
++                      ROUTER_API_RESULT& aResult );
++
++    bool ApiOptimizeNets( const std::vector<NETINFO_ITEM*>& aNets, int aEffort, bool aKeepTopology,
++                          bool aDryRun, const std::optional<BOX2I>& aArea, ROUTER_API_RESULT& aResult );
++
++    /// @param aKind 1 = point (track end), 2 = segment, 3 = through via
++    bool ApiProbeClearance( int aKind, const VECTOR2I& aStart, const VECTOR2I& aEnd, PCB_LAYER_ID aLayer,
++                            NETINFO_ITEM* aNet, int aWidth, int aViaDiameter, int aViaDrill, int aRadius,
++                            int aMaxResults, ROUTER_API_PROBE& aResult );
++
++private:
++    bool apiBegin( int aMode, ROUTER_API_RESULT& aResult );
++    void apiEnd();
++    PNS::ITEM* apiPickItem( const VECTOR2I& aWhere, PNS::NET_HANDLE aNet, int aPnsLayer,
++                            bool aIgnorePads = false );
++    VECTOR2I apiSnap( PNS::ITEM* aItem, const VECTOR2I& aP );
++    void apiMoveStepped( const VECTOR2I& aFrom, const VECTOR2I& aTo, PNS::ITEM* aEndItem, int aStep );
++
++    // Saved state while an API call runs
++    PNS::PNS_MODE                m_apiSavedMode = PNS::RM_Shove;
++    bool                         m_apiSavedFixAll = false;
++    PCB_LAYER_ID                 m_apiSavedLayer = UNDEFINED_LAYER;
++
+ private:
+     void performRouting( VECTOR2D aStartPosition );
+     void performDragging( int aMode = PNS::DM_ANY );
+diff --git a/pcbnew/router/router_tool_api.cpp b/pcbnew/router/router_tool_api.cpp
+new file mode 100644
+index 00000000..334f0937
+--- /dev/null
++++ b/pcbnew/router/router_tool_api.cpp
+@@ -0,0 +1,798 @@
++/*
++ * This program source code file is part of KiCad, a free EDA CAD application.
++ *
++ * Private extension (BugBot tooling): synchronous, mouse-free access to the
++ * interactive push-and-shove router for the IPC API.  Not part of upstream KiCad.
++ *
++ * This program is free software: you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation, either version 3 of the License, or (at your
++ * option) any later version.
++ */
++
++#include <board.h>
++#include <board_design_settings.h>
++#include <netinfo.h>
++#include <pcb_edit_frame.h>
++#include <pcb_track.h>
++#include <pad.h>
++#include <footprint.h>
++#include <zone.h>
++#include <tools/pcb_grid_helper.h>
++
++#include "router_tool.h"
++#include "pns_router.h"
++#include "pns_kicad_iface.h"
++#include "pns_routing_settings.h"
++#include "pns_placement_algo.h"
++#include "pns_drag_algo.h"
++#include "pns_optimizer.h"
++#include "pns_line.h"
++#include "pns_segment.h"
++#include "pns_solid.h"
++#include "pns_via.h"
++#include "pns_hole.h"
++
++
++bool ROUTER_TOOL::apiBegin( int aMode, ROUTER_API_RESULT& aResult )
++{
++    if( m_inRouterTool || m_router->RoutingInProgress() )
++    {
++        aResult.message = wxT( "The interactive router is in use" );
++        return false;
++    }
++
++    m_iface->SetBoard( board() );
++    m_router->ClearViewDecorations();
++    m_router->SyncWorld();
++    m_router->SetMode( PNS::PNS_MODE_ROUTE_SINGLE );
++
++    PNS::ROUTING_SETTINGS& settings = m_router->Settings();
++    m_apiSavedMode = settings.Mode();
++    m_apiSavedFixAll = settings.GetFixAllSegments();
++    m_apiSavedLayer = frame()->GetActiveLayer();
++
++    if( aMode >= 0 )
++        settings.SetMode( static_cast<PNS::PNS_MODE>( aMode ) );
++
++    // Every waypoint is a real vertex, not just a hint for the posture of the last segment
++    settings.SetFixAllSegments( true );
++
++    m_inRouterTool = true;
++    return true;
++}
++
++
++void ROUTER_TOOL::apiEnd()
++{
++    if( m_router->RoutingInProgress() )
++        m_router->StopRouting();
++
++    m_router->GetWorld()->KillChildren();
++    m_router->ClearViewDecorations();
++
++    PNS::ROUTING_SETTINGS& settings = m_router->Settings();
++    settings.SetMode( m_apiSavedMode );
++    settings.SetFixAllSegments( m_apiSavedFixAll );
++
++    if( m_apiSavedLayer != UNDEFINED_LAYER )
++        frame()->SetActiveLayer( m_apiSavedLayer );
++
++    m_iface->SetCommitFlags( 0 );
++    m_inRouterTool = false;
++    frame()->GetCanvas()->Refresh();
++}
++
++
++PNS::ITEM* ROUTER_TOOL::apiPickItem( const VECTOR2I& aWhere, PNS::NET_HANDLE aNet, int aPnsLayer,
++                                     bool aIgnorePads )
++{
++    // pickSingleItem() treats layer 0 (F.Cu) as "use the view's top layer", so make the
++    // active layer match the requested one first.
++    if( aPnsLayer >= 0 )
++        frame()->SetActiveLayer( m_iface->GetBoardLayerFromPNSLayer( aPnsLayer ) );
++
++    return pickSingleItem( aWhere, aNet, aPnsLayer, aIgnorePads );
++}
++
++
++VECTOR2I ROUTER_TOOL::apiSnap( PNS::ITEM* aItem, const VECTOR2I& aP )
++{
++    // Like snapToItem(), but never snaps to the grid: scripted coordinates are exact.
++    if( !aItem )
++        return aP;
++
++    switch( aItem->Kind() )
++    {
++    case PNS::ITEM::SOLID_T:
++    {
++        PNS::SOLID* solid = static_cast<PNS::SOLID*>( aItem );
++
++        if( solid->AnchorPoints().empty() )
++            return solid->Anchor( 0 );
++
++        VECTOR2I    best = solid->Anchor( 0 );
++        SEG::ecoord bestDist = std::numeric_limits<SEG::ecoord>::max();
++
++        for( const VECTOR2I& anchor : solid->AnchorPoints() )
++        {
++            SEG::ecoord d = ( aP - anchor ).SquaredEuclideanNorm();
++
++            if( d < bestDist )
++            {
++                bestDist = d;
++                best = anchor;
++            }
++        }
++
++        return best;
++    }
++
++    case PNS::ITEM::VIA_T:
++        return static_cast<PNS::VIA*>( aItem )->Pos();
++
++    case PNS::ITEM::SEGMENT_T:
++    {
++        PNS::SEGMENT* seg = static_cast<PNS::SEGMENT*>( aItem );
++        VECTOR2I      A = seg->Anchor( 0 );
++        VECTOR2I      B = seg->Anchor( 1 );
++        SEG::ecoord   w_sq = SEG::Square( seg->Width() / 2 );
++        SEG::ecoord   dA = ( aP - A ).SquaredEuclideanNorm();
++        SEG::ecoord   dB = ( aP - B ).SquaredEuclideanNorm();
++
++        if( dA < w_sq || dB < w_sq )
++            return dA < dB ? A : B;
++
++        return seg->Seg().NearestPoint( aP );
++    }
++
++    case PNS::ITEM::ARC_T:
++    {
++        PNS::LINKED_ITEM* li = static_cast<PNS::LINKED_ITEM*>( aItem );
++        VECTOR2I          A = li->Anchor( 0 );
++        VECTOR2I          B = li->Anchor( 1 );
++
++        return ( aP - A ).SquaredEuclideanNorm() < ( aP - B ).SquaredEuclideanNorm() ? A : B;
++    }
++
++    default:
++        return aP;
++    }
++}
++
++
++void ROUTER_TOOL::apiMoveStepped( const VECTOR2I& aFrom, const VECTOR2I& aTo, PNS::ITEM* aEndItem,
++                                  int aStep )
++{
++    // Feed the router intermediate cursor positions like mouse motion does, so that shoved items
++    // are pushed gradually (a single long jump can land on the far side of an obstacle).
++    if( aStep <= 0 )
++        aStep = pcbIUScale.mmToIU( 0.1 );
++
++    VECTOR2D d = VECTOR2D( aTo - aFrom );
++    int      n = (int) std::min<double>( 2000.0, std::floor( d.EuclideanNorm() / aStep ) );
++
++    for( int k = 1; k < n; k++ )
++        m_router->Move( aFrom + VECTOR2I( KiROUND( d.x * k / n ), KiROUND( d.y * k / n ) ), nullptr );
++
++    m_router->Move( aTo, aEndItem );
++}
++
++
++bool ROUTER_TOOL::ApiRouteTrack( NETINFO_ITEM* aNet, const std::vector<ROUTER_API_WAYPOINT>& aPoints,
++                                 PCB_LAYER_ID aLayer, int aWidth, int aViaDiameter, int aViaDrill,
++                                 int aMode, bool aAllowPartial, bool aDryRun, int aStep,
++                                 bool aDiffPair, int aDiffPairGap, ROUTER_API_RESULT& aResult )
++{
++    if( aPoints.size() < 2 )
++    {
++        aResult.message = wxT( "At least two points (start and end) are needed" );
++        return false;
++    }
++
++    if( !apiBegin( aMode, aResult ) )
++        return false;
++
++    if( aDiffPair && aDryRun )
++    {
++        // The diff pair placer commits every fixed segment to the board, so it cannot be undone here
++        aResult.message = wxT( "dry_run is not supported for differential pairs" );
++        apiEnd();
++        return false;
++    }
++
++    if( aDiffPair )
++        m_router->SetMode( PNS::PNS_MODE_ROUTE_DIFF_PAIR );
++
++    PNS::NET_HANDLE net = aNet;
++    int             pnsLayer = aLayer != UNDEFINED_LAYER ? m_iface->GetPNSLayerFromBoardLayer( aLayer )
++                                                         : -1;
++    VECTOR2I        p0 = aPoints[0].pos;
++    PNS::ITEM*      startItem = apiPickItem( p0, net, pnsLayer );
++
++    if( !startItem && pnsLayer >= 0 )
++        startItem = apiPickItem( p0, net, -1 );
++
++    if( !startItem )
++    {
++        aResult.message = wxString::Format( wxT( "No pad, track or via%s found at the start point" ),
++                                            aNet ? wxT( " of net " ) + aNet->GetNetname()
++                                                 : wxString() );
++        apiEnd();
++        return false;
++    }
++
++    if( !net )
++        net = startItem->Net();
++
++    if( aNet && startItem->Net() != net )
++    {
++        aResult.message = wxT( "The item at the start point is on a different net" );
++        apiEnd();
++        return false;
++    }
++
++    if( pnsLayer < 0 || !startItem->Layers().Overlaps( pnsLayer ) )
++        pnsLayer = startItem->Layers().Start();
++
++    PCB_LAYER_ID pcbLayer = m_iface->GetBoardLayerFromPNSLayer( pnsLayer );
++
++    if( !::IsCopperLayer( pcbLayer ) )
++    {
++        aResult.message = wxT( "Tracks on copper layers only" );
++        apiEnd();
++        return false;
++    }
++
++    frame()->SetActiveLayer( pcbLayer );
++    p0 = apiSnap( startItem, p0 );
++
++    // Sizes: same as prepareInteractive(), then the explicit overrides
++    BOARD_DESIGN_SETTINGS& bds = board()->GetDesignSettings();
++    PNS::SIZES_SETTINGS    sizes( m_router->Sizes() );
++
++    m_iface->SetStartLayerFromPCBNew( pcbLayer );
++    bds.m_TempOverrideTrackWidth = false;
++    m_iface->ImportSizes( sizes, startItem, nullptr, p0 );
++
++    if( aWidth > 0 )
++    {
++        sizes.SetTrackWidth( aWidth );
++        sizes.SetTrackWidthIsExplicit( true );
++
++        if( aDiffPair )
++            sizes.SetDiffPairWidth( aWidth );
++    }
++
++    if( aDiffPair && aDiffPairGap > 0 )
++        sizes.SetDiffPairGap( aDiffPairGap );
++
++    if( aViaDiameter <= 0 )
++        aViaDiameter = sizes.ViaDiameter() > 0 ? sizes.ViaDiameter() : bds.GetCurrentViaSize();
++
++    if( aViaDrill <= 0 )
++        aViaDrill = sizes.ViaDrill() > 0 ? sizes.ViaDrill() : bds.GetCurrentViaDrill();
++
++    sizes.SetViaDiameter( aViaDiameter );
++    sizes.SetViaDrill( aViaDrill );
++    sizes.SetViaType( VIATYPE::THROUGH );
++    sizes.ClearLayerPairs();
++    sizes.AddLayerPair( m_iface->GetPNSLayerFromBoardLayer( F_Cu ),
++                        m_iface->GetPNSLayerFromBoardLayer( B_Cu ) );
++    m_router->UpdateSizes( sizes );
++
++    if( !m_router->StartRouting( p0, startItem, pnsLayer ) )
++    {
++        aResult.message = m_router->FailureReason();
++        apiEnd();
++        return false;
++    }
++
++    // A pair's head ends between the two tracks, so allow up to one pitch of slack
++    int reachTolerance = aDiffPair ? m_router->Sizes().DiffPairGap() + m_router->Sizes().DiffPairWidth() : 0;
++
++    PCB_LAYER_ID curLayer = pcbLayer;
++    bool         completed = true;
++    bool         finished = false;
++    VECTOR2I     reached = p0;
++    VECTOR2I     cursor = p0;
++
++    // Where the routed head really ends.  The pair placer's CurrentEnd() is just the cursor, so for
++    // pairs use the middle of the two lines' last points.
++    auto headEnd =
++            [&]( const VECTOR2I& aFallback ) -> VECTOR2I
++            {
++                if( !aDiffPair )
++                    return m_router->Placer()->CurrentEnd();
++
++                std::vector<VECTOR2I> ends;
++                PNS::ITEM_SET         traces = m_router->Placer()->Traces();
++
++                for( PNS::ITEM* item : traces.CItems() )
++                {
++                    if( item->Kind() == PNS::ITEM::LINE_T )
++                    {
++                        const PNS::LINE* line = static_cast<const PNS::LINE*>( item );
++
++                        if( line->PointCount() > 1 )
++                            ends.push_back( line->CLine().CLastPoint() );
++                    }
++                }
++
++                return ends.size() == 2 ? ( ends[0] + ends[1] ) / 2 : aFallback;
++            };
++
++    for( size_t i = 1; i < aPoints.size() && !finished; i++ )
++    {
++        const ROUTER_API_WAYPOINT& wp = aPoints[i];
++        bool                       last = ( i == aPoints.size() - 1 );
++        bool                       layerChange = wp.layer != UNDEFINED_LAYER && wp.layer != curLayer;
++        VECTOR2I                   p = wp.pos;
++        PNS::ITEM*                 endItem = nullptr;
++
++        if( layerChange )
++        {
++            if( !::IsCopperLayer( wp.layer ) )
++            {
++                aResult.message = wxT( "Waypoint layer is not a copper layer" );
++                completed = false;
++                break;
++            }
++
++            PNS::SIZES_SETTINGS viaSizes( m_router->Sizes() );
++            viaSizes.ClearLayerPairs();
++            viaSizes.AddLayerPair( m_iface->GetPNSLayerFromBoardLayer( curLayer ),
++                                   m_iface->GetPNSLayerFromBoardLayer( wp.layer ) );
++            viaSizes.SetViaDiameter( aViaDiameter );
++            viaSizes.SetViaDrill( aViaDrill );
++            viaSizes.SetViaType( VIATYPE::THROUGH );
++            m_router->UpdateSizes( viaSizes );
++
++            if( !m_router->IsPlacingVia() )
++                m_router->ToggleViaPlacement();
++        }
++        else if( last )
++        {
++            endItem = apiPickItem( p, net, m_iface->GetPNSLayerFromBoardLayer( curLayer ) );
++
++            if( endItem && endItem->Net() == net )
++                p = apiSnap( endItem, p );
++            else
++                endItem = nullptr;
++        }
++
++        apiMoveStepped( cursor, p, endItem, aStep );
++        reached = headEnd( cursor );
++
++        // Like pressing '/' in the GUI: if the head doesn't get there, try the other posture
++        // (straight-first vs. diagonal-first)
++        if( ( reached - p ).EuclideanNorm() > reachTolerance )
++        {
++            m_router->FlipPosture();
++            apiMoveStepped( cursor, p, endItem, aStep );
++            reached = headEnd( cursor );
++
++            if( ( reached - p ).EuclideanNorm() > reachTolerance )
++            {
++                m_router->FlipPosture();
++                m_router->Move( p, endItem );
++                reached = headEnd( cursor );
++            }
++        }
++
++        cursor = p;
++
++        if( ( reached - p ).EuclideanNorm() > reachTolerance )
++        {
++            completed = false;
++            aResult.message = wxString::Format( wxT( "Blocked before waypoint %d" ), (int) i );
++        }
++
++        if( m_router->FixRoute( p, endItem, last, false ) )
++            finished = true;
++
++        if( !completed )
++            break;
++
++        if( layerChange && !finished )
++        {
++            m_router->SwitchLayer( m_iface->GetPNSLayerFromBoardLayer( wp.layer ) );
++            curLayer = wp.layer;
++            frame()->SetActiveLayer( curLayer );
++            updateSizesAfterRouterEvent( m_router->GetCurrentLayer(), p );
++
++            if( aWidth > 0 || ( aDiffPair && aDiffPairGap > 0 ) )
++            {
++                PNS::SIZES_SETTINGS s( m_router->Sizes() );
++
++                if( aWidth > 0 )
++                {
++                    s.SetTrackWidth( aWidth );
++                    s.SetTrackWidthIsExplicit( true );
++
++                    if( aDiffPair )
++                        s.SetDiffPairWidth( aWidth );
++                }
++
++                if( aDiffPair && aDiffPairGap > 0 )
++                    s.SetDiffPairGap( aDiffPairGap );
++
++                m_router->UpdateSizes( s );
++            }
++        }
++    }
++
++    aResult.completed = completed;
++    aResult.reached = reached;
++
++    if( aDryRun || ( !completed && !aAllowPartial ) )
++    {
++        m_router->StopRouting();
++
++        if( !aDryRun && aResult.message.IsEmpty() )
++            aResult.message = wxT( "Route incomplete; discarded" );
++    }
++    else
++    {
++        m_router->CommitRouting();
++        aResult.committed = true;
++    }
++
++    apiEnd();
++    return aResult.committed || aDryRun;
++}
++
++
++bool ROUTER_TOOL::ApiDragItem( BOARD_CONNECTED_ITEM* aItem, const VECTOR2I* aGrab,
++                               const VECTOR2I& aTarget, int aMode, bool aFreeAngle, bool aForce,
++                               bool aDryRun, int aStep, ROUTER_API_RESULT& aResult )
++{
++    if( !apiBegin( aMode, aResult ) )
++        return false;
++
++    PNS::ITEM* item = m_router->GetWorld()->FindItemByParent( aItem );
++
++    if( !item || !item->OfKind( PNS::ITEM::SEGMENT_T | PNS::ITEM::VIA_T ) )
++    {
++        aResult.message = item ? wxT( "Only track segments and vias can be dragged (not arcs)" )
++                               : wxT( "Item not found in the router world" );
++        apiEnd();
++        return false;
++    }
++
++    VECTOR2I grab;
++
++    if( aGrab )
++        grab = *aGrab;
++    else if( item->OfKind( PNS::ITEM::VIA_T ) )
++        grab = static_cast<PNS::VIA*>( item )->Pos();
++    else
++        grab = static_cast<PNS::SEGMENT*>( item )->Seg().Center();
++
++    grab = apiSnap( item, grab );
++    frame()->SetActiveLayer( m_iface->GetBoardLayerFromPNSLayer( item->Layers().Start() ) );
++
++    int dragMode = PNS::DM_ANY;
++
++    if( aFreeAngle )
++        dragMode |= PNS::DM_FREE_ANGLE;
++
++    if( !m_router->StartDragging( grab, item, dragMode ) )
++    {
++        aResult.message = m_router->FailureReason();
++
++        if( aResult.message.IsEmpty() )
++            aResult.message = wxT( "Could not start dragging" );
++
++        apiEnd();
++        return false;
++    }
++
++    apiMoveStepped( grab, aTarget, nullptr, aStep );
++
++    bool dragStatus = false;
++
++    if( PNS::DRAG_ALGO* dragger = m_router->GetDragger() )
++        dragger->GetForceMarkObstaclesMode( &dragStatus );
++
++    aResult.completed = dragStatus;
++    aResult.reached = aTarget;
++
++    if( !dragStatus )
++        aResult.message = wxT( "Target position is not valid; using the last valid position" );
++
++    if( !aDryRun && m_router->FixRoute( aTarget, nullptr, false, aForce ) )
++        aResult.committed = true;
++    else if( !aDryRun )
++        aResult.message = wxT( "Drag could not be committed (DRC violation)" );
++
++    apiEnd();
++    return aResult.committed || aDryRun;
++}
++
++
++bool ROUTER_TOOL::ApiOptimizeNets( const std::vector<NETINFO_ITEM*>& aNets, int aEffort,
++                                   bool aKeepTopology, bool aDryRun, const std::optional<BOX2I>& aArea,
++                                   ROUTER_API_RESULT& aResult )
++{
++    if( !apiBegin( -1, aResult ) )
++        return false;
++
++    if( aEffort <= 0 )
++    {
++        aEffort = PNS::OPTIMIZER::MERGE_SEGMENTS | PNS::OPTIMIZER::SMART_PADS
++                  | PNS::OPTIMIZER::MERGE_OBTUSE;
++    }
++
++    if( aKeepTopology )
++        aEffort |= PNS::OPTIMIZER::KEEP_TOPOLOGY;
++
++    PNS::NODE* branch = m_router->GetWorld()->Branch();
++    int        changed = 0;
++    int        lines = 0;
++
++    for( NETINFO_ITEM* net : aNets )
++    {
++        std::set<PNS::ITEM*> items;
++        branch->AllItemsInNet( net, items, PNS::ITEM::SEGMENT_T | PNS::ITEM::ARC_T );
++
++        // Pointers in 'items' may be freed once their line is replaced, so remember the
++        // already-processed ones and never dereference them again.
++        std::set<PNS::ITEM*> done;
++
++        for( PNS::ITEM* item : items )
++        {
++            if( done.count( item ) )
++                continue;
++
++            PNS::LINKED_ITEM* li = static_cast<PNS::LINKED_ITEM*>( item );
++            PNS::LINE         line = branch->AssembleLine( li );
++
++            bool locked = false;
++            bool inArea = !aArea;
++
++            for( PNS::LINKED_ITEM* link : line.Links() )
++            {
++                done.insert( link );
++                locked |= link->IsLocked();
++
++                if( aArea && ( aArea->Contains( link->Anchor( 0 ) ) || aArea->Contains( link->Anchor( 1 ) ) ) )
++                    inArea = true;
++            }
++
++            if( locked || !inArea || line.SegmentCount() < 1 )
++                continue;
++
++            lines++;
++
++            PNS::LINE optimized( line );
++
++            if( PNS::OPTIMIZER::Optimize( &optimized, aEffort, branch ) )
++            {
++                if( optimized.CLine().CompareGeometry( line.CLine() ) )
++                    continue;
++
++                optimized.ClearLinks();
++                branch->Replace( line, optimized );
++                changed++;
++            }
++        }
++    }
++
++    aResult.completed = true;
++    aResult.message = wxString::Format( wxT( "%d of %d lines optimized" ), changed, lines );
++
++    if( changed && !aDryRun )
++    {
++        m_router->CommitRouting( branch );
++        aResult.committed = true;
++    }
++
++    apiEnd();
++    return true;
++}
++
++
++static wxString apiItemKind( const PNS::ITEM* aItem )
++{
++    switch( aItem->Kind() )
++    {
++    case PNS::ITEM::SOLID_T:
++    {
++        BOARD_ITEM* parent = aItem->Parent();
++
++        if( !parent )
++            return wxT( "solid" );
++
++        switch( parent->Type() )
++        {
++        case PCB_PAD_T:  return wxT( "pad" );
++        case PCB_ZONE_T: return static_cast<ZONE*>( parent )->GetIsRuleArea() ? wxT( "keepout" ) : wxT( "zone" );
++        default:         return parent->GetLayer() == Edge_Cuts ? wxT( "outline" ) : wxT( "graphic" );
++        }
++    }
++    case PNS::ITEM::VIA_T:     return wxT( "via" );
++    case PNS::ITEM::SEGMENT_T: return wxT( "track" );
++    case PNS::ITEM::ARC_T:     return wxT( "arc" );
++    case PNS::ITEM::HOLE_T:    return wxT( "hole" );
++    default:                   return wxT( "item" );
++    }
++}
++
++
++static wxString apiItemDescription( BOARD_ITEM* aParent )
++{
++    if( !aParent )
++        return wxEmptyString;
++
++    if( aParent->Type() == PCB_PAD_T )
++    {
++        PAD* pad = static_cast<PAD*>( aParent );
++
++        if( FOOTPRINT* fp = pad->GetParentFootprint() )
++            return fp->GetReference() + wxT( "." ) + pad->GetNumber();
++
++        return wxT( "pad " ) + pad->GetNumber();
++    }
++
++    if( aParent->Type() == PCB_ZONE_T )
++        return static_cast<ZONE*>( aParent )->GetZoneName();
++
++    if( FOOTPRINT* fp = aParent->GetParentFootprint() )
++        return fp->GetReference();
++
++    return wxEmptyString;
++}
++
++
++bool ROUTER_TOOL::ApiProbeClearance( int aKind, const VECTOR2I& aStart, const VECTOR2I& aEnd,
++                                     PCB_LAYER_ID aLayer, NETINFO_ITEM* aNet, int aWidth, int aViaDiameter,
++                                     int aViaDrill, int aRadius, int aMaxResults, ROUTER_API_PROBE& aResult )
++{
++    ROUTER_API_RESULT begin;
++
++    if( !apiBegin( -1, begin ) )
++    {
++        aResult.message = begin.message;
++        return false;
++    }
++
++    PNS::NODE*          world = m_router->GetWorld();
++    PNS::RULE_RESOLVER* rules = m_router->GetRuleResolver();
++    int                 top = m_iface->GetPNSLayerFromBoardLayer( F_Cu );
++    int                 bottom = m_iface->GetPNSLayerFromBoardLayer( B_Cu );
++    int                 pnsLayer = ( aKind == 3 || aLayer == UNDEFINED_LAYER )
++                                           ? top : m_iface->GetPNSLayerFromBoardLayer( aLayer );
++
++    if( aRadius <= 0 )
++        aRadius = pcbIUScale.mmToIU( 1.0 );
++
++    if( aMaxResults <= 0 )
++        aMaxResults = 10;
++
++    // Default sizes from the rules for this net
++    PNS::SEGMENT    dummy( SEG( aStart, aStart ), aNet );
++    PNS::CONSTRAINT constraint;
++    dummy.SetLayer( pnsLayer );
++
++    if( aWidth <= 0 )
++    {
++        aWidth = board()->GetDesignSettings().m_TrackMinWidth;
++
++        if( rules->QueryConstraint( PNS::CONSTRAINT_TYPE::CT_WIDTH, &dummy, nullptr, pnsLayer, &constraint ) )
++            aWidth = std::max( aWidth, constraint.m_Value.Opt() );
++    }
++
++    if( aViaDiameter <= 0 )
++    {
++        aViaDiameter = board()->GetDesignSettings().GetCurrentViaSize();
++
++        if( rules->QueryConstraint( PNS::CONSTRAINT_TYPE::CT_VIA_DIAMETER, &dummy, nullptr, pnsLayer,
++                                    &constraint ) && constraint.m_Value.Opt() > 0 )
++        {
++            aViaDiameter = constraint.m_Value.Opt();
++        }
++    }
++
++    if( aViaDrill <= 0 )
++    {
++        aViaDrill = board()->GetDesignSettings().GetCurrentViaDrill();
++
++        if( rules->QueryConstraint( PNS::CONSTRAINT_TYPE::CT_VIA_HOLE, &dummy, nullptr, pnsLayer,
++                                    &constraint ) && constraint.m_Value.Opt() > 0 )
++        {
++            aViaDrill = constraint.m_Value.Opt();
++        }
++    }
++
++    std::unique_ptr<PNS::ITEM> probe;
++
++    if( aKind == 3 )
++    {
++        probe = std::make_unique<PNS::VIA>( aStart, PNS_LAYER_RANGE( top, bottom ), aViaDiameter, aViaDrill,
++                                            aNet );
++    }
++    else
++    {
++        auto seg = std::make_unique<PNS::SEGMENT>( SEG( aStart, aKind == 2 ? aEnd : aStart ), aNet );
++        seg->SetWidth( aWidth );
++        seg->SetLayer( pnsLayer );
++        probe = std::move( seg );
++    }
++
++    aResult.ok = !world->CheckColliding( probe.get() );
++
++    PNS::NODE::OBSTACLES          found;
++    PNS::COLLISION_SEARCH_OPTIONS opts;
++    opts.m_overrideClearance = aRadius;
++    opts.m_useClearanceEpsilon = false;
++    world->QueryColliding( probe.get(), found, opts );
++
++    std::set<const PNS::ITEM*> seen;
++    aResult.minMargin = aRadius;
++
++    for( const PNS::OBSTACLE& obs : found )
++    {
++        const PNS::ITEM* item = obs.m_item;
++
++        if( !item || seen.count( item ) )
++            continue;
++
++        seen.insert( item );
++
++        // Measure on the first copper layer both items share
++        int layer = std::max( probe->Layers().Start(), item->Layers().Start() );
++
++        if( layer > std::min( probe->Layers().End(), item->Layers().End() ) )
++            layer = item->Layers().Start();
++
++        const SHAPE* ps = probe->Shape( layer );
++        const SHAPE* os = item->Shape( layer );
++
++        if( !ps || !os )
++            continue;
++
++        int actual = aRadius;
++
++        if( !ps->Collide( os, aRadius, &actual ) )
++            continue;
++
++        ROUTER_API_OBSTACLE o;
++        BOARD_ITEM*         parent = item->Parent() ? item->Parent() : item->BoardItem();
++
++        if( item->Kind() == PNS::ITEM::HOLE_T )
++        {
++            const PNS::HOLE* hole = static_cast<const PNS::HOLE*>( item );
++
++            if( hole->ParentPadVia() && hole->ParentPadVia()->Parent() )
++                parent = hole->ParentPadVia()->Parent();
++        }
++
++        o.kind = apiItemKind( item );
++        o.description = apiItemDescription( parent );
++        o.distance = actual;
++        o.required = rules->Clearance( probe.get(), item, false );
++        o.layer = m_iface->GetBoardLayerFromPNSLayer( layer );
++
++        if( parent )
++            o.id = parent->m_Uuid;
++
++        if( NETINFO_ITEM* n = static_cast<NETINFO_ITEM*>( item->Net() ) )
++            o.net = n->GetNetname();
++
++        aResult.minMargin = std::min( aResult.minMargin, o.distance - o.required );
++        aResult.obstacles.push_back( o );
++    }
++
++    std::sort( aResult.obstacles.begin(), aResult.obstacles.end(),
++               []( const ROUTER_API_OBSTACLE& a, const ROUTER_API_OBSTACLE& b )
++               {
++                   return a.distance - a.required < b.distance - b.required;
++               } );
++
++    if( (int) aResult.obstacles.size() > aMaxResults )
++        aResult.obstacles.resize( aMaxResults );
++
++    apiEnd();
++    return true;
++}
+diff --git a/tools/custom_vcpkg_triplets/x64-windows.cmake b/tools/custom_vcpkg_triplets/x64-windows.cmake
+index 8d2e47ae..b2caf50d 100644
+--- a/tools/custom_vcpkg_triplets/x64-windows.cmake
++++ b/tools/custom_vcpkg_triplets/x64-windows.cmake
+@@ -1,3 +1,5 @@
+ include("${VCPKG_ROOT_DIR}/triplets/x64-windows.cmake")
+ 
+-set(VCPKG_DISABLE_COMPILER_TRACKING ON)
+\ No newline at end of file
++set(VCPKG_DISABLE_COMPILER_TRACKING ON)
++# Private build: release-only dependencies (halves vcpkg build time)
++set(VCPKG_BUILD_TYPE release)
+diff --git a/vcpkg.json b/vcpkg.json
+index 48231e82..7372f9de 100644
+--- a/vcpkg.json
++++ b/vcpkg.json
+@@ -44,7 +44,6 @@
+     },
+     "icu",
+     "ngspice",
+-    "wxpython-33",
+     {
+       "name": "libgit2",
+       "features": [ "ssh", "winhttp" ]

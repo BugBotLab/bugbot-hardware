@@ -1,0 +1,17 @@
+{
+ "coil": {
+  "turns_per_layer": 4,
+  "trace": 0.3,
+  "gap": 0.2,
+  "r_in": 8.35,
+  "r_out": 9.85,
+  "L_uH": 2.081
+ },
+ "reader": {
+  "size": [
+   28.0,
+   18.0
+  ],
+  "holes": []
+ }
+}

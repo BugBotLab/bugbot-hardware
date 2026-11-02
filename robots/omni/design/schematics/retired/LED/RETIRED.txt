@@ -1,0 +1,3 @@
+RETIRED 2026-10-31: do not order.
+The LED beacon is now a bought 7 x WS2812B-5050 jewel (PARTS.md, Beacon; bugbot_freecad/build_ledpcb.py).
+This board (kicad/lib/make_led_board.py) is kept only for reference.

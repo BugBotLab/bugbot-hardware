@@ -1,0 +1,320 @@
+[
+ {
+  "ref": "U1",
+  "value": "BNO085",
+  "footprint": "BugBot:BNO085_LGA-28_5.2x3.8mm",
+  "side": "F",
+  "x": -9.4,
+  "y": -14.1,
+  "rot": 0
+ },
+ {
+  "ref": "U2",
+  "value": "BQ24074",
+  "footprint": "Package_DFN_QFN:QFN-16-1EP_3x3mm_P0.5mm_EP1.7x1.7mm",
+  "side": "F",
+  "x": -6.0,
+  "y": -27.5,
+  "rot": 0
+ },
+ {
+  "ref": "U3",
+  "value": "TPS63802",
+  "footprint": "Package_SON:WSON-10-1EP_2x3mm_P0.5mm_EP0.84x2.4mm",
+  "side": "F",
+  "x": -2.5,
+  "y": -27.5,
+  "rot": 0
+ },
+ {
+  "ref": "L1",
+  "value": "TPS63802 inductor",
+  "footprint": "Inductor_SMD:L_1008_2520Metric",
+  "side": "F",
+  "x": -2.5,
+  "y": -23.75,
+  "rot": 0
+ },
+ {
+  "ref": "U4",
+  "value": "TPS61023",
+  "footprint": "Package_TO_SOT_SMD:SOT-563",
+  "side": "F",
+  "x": 1.0,
+  "y": -28.2,
+  "rot": 0
+ },
+ {
+  "ref": "L2",
+  "value": "TPS61023 inductor",
+  "footprint": "Inductor_SMD:L_1008_2520Metric",
+  "side": "F",
+  "x": 1.0,
+  "y": -24.25,
+  "rot": 0
+ },
+ {
+  "ref": "U5",
+  "value": "Battery protection",
+  "footprint": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+  "side": "F",
+  "x": 9.0,
+  "y": -32.0,
+  "rot": 90
+ },
+ {
+  "ref": "J1",
+  "value": "Servo",
+  "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical_SMD_Pin1Left",
+  "side": "F",
+  "x": 6.8,
+  "y": -15.3,
+  "rot": 90
+ },
+ {
+  "ref": "U6",
+  "value": "INA180A2",
+  "footprint": "Package_TO_SOT_SMD:SOT-23-5",
+  "side": "F",
+  "x": -2.5,
+  "y": -18.5,
+  "rot": 0
+ },
+ {
+  "ref": "R1",
+  "value": "0R1 shunt",
+  "footprint": "Resistor_SMD:R_0805_2012Metric",
+  "side": "F",
+  "x": 0.5,
+  "y": -18.475,
+  "rot": 0
+ },
+ {
+  "ref": "J2",
+  "value": "SPI + GPIO 2x6",
+  "footprint": "Connector_PinSocket_2.54mm:PinSocket_2x06_P2.54mm_Vertical_SMD",
+  "side": "F",
+  "x": -11.44,
+  "y": 26.5,
+  "rot": 90
+ },
+ {
+  "ref": "J3",
+  "value": "I2C Qwiic",
+  "footprint": "Connector_JST:JST_SH_BM04B-SRSS-TB_1x04-1MP_P1.00mm_Vertical",
+  "side": "F",
+  "x": 0.5,
+  "y": 26.5,
+  "rot": 180
+ },
+ {
+  "ref": "SW1",
+  "value": "BOOT",
+  "footprint": "BugBot:SW_ZX-QC4545-4.3TP",
+  "side": "F",
+  "x": 8.5,
+  "y": 29.6,
+  "rot": 0
+ },
+ {
+  "ref": "SW2",
+  "value": "RESET",
+  "footprint": "BugBot:SW_ZX-QC4545-4.3TP",
+  "side": "F",
+  "x": 16.0,
+  "y": 29.6,
+  "rot": 0
+ },
+ {
+  "ref": "D1",
+  "value": "Status LED",
+  "footprint": "LED_SMD:LED_0603_1608Metric",
+  "side": "F",
+  "x": 12.25,
+  "y": 27.0,
+  "rot": 0
+ },
+ {
+  "ref": "J4",
+  "value": "LED ring",
+  "footprint": "Connector_JST:JST_SH_BM03B-SRSS-TB_1x03-1MP_P1.00mm_Vertical",
+  "side": "F",
+  "x": -6.5,
+  "y": 14.0,
+  "rot": 0
+ },
+ {
+  "ref": "J5",
+  "value": "Battery",
+  "footprint": "Connector_JST:JST_PH_B2B-PH-K_1x02_P2.00mm_Vertical",
+  "side": "F",
+  "x": 0.025,
+  "y": -33.55,
+  "rot": 90
+ },
+ {
+  "ref": "J6",
+  "value": "Front sensor board",
+  "footprint": "Connector_PinSocket_2.00mm:PinSocket_2x08_P2.00mm_Vertical_SMD",
+  "side": "F",
+  "x": 17.2,
+  "y": -3.6,
+  "rot": 0
+ },
+ {
+  "ref": "U7",
+  "value": "ESP32-P4-Module-U",
+  "footprint": "BugBot:Waveshare_ESP32-P4-Module",
+  "side": "B",
+  "x": 4.5,
+  "y": 20.5,
+  "rot": 0
+ },
+ {
+  "ref": "J7",
+  "value": "Solenoid",
+  "footprint": "Connector_JST:JST_PH_B2B-PH-SM4-TB_1x02-1MP_P2.00mm_Vertical",
+  "side": "B",
+  "x": -15.0,
+  "y": 11.4,
+  "rot": 0,
+  "model": "${KICAD10_3DMODEL_DIR}/Connector_JST.3dshapes/JST_PH_B2B-PH-K_1x02_P2.00mm_Vertical.step"
+ },
+ {
+  "ref": "J8",
+  "value": "Motor 1",
+  "footprint": "Connector_JST:JST_SH_BM02B-SRSS-TB_1x02-1MP_P1.00mm_Vertical",
+  "side": "B",
+  "x": -14.0,
+  "y": 17.0,
+  "rot": 0
+ },
+ {
+  "ref": "J9",
+  "value": "Motor 2",
+  "footprint": "Connector_JST:JST_SH_BM02B-SRSS-TB_1x02-1MP_P1.00mm_Vertical",
+  "side": "B",
+  "x": -21.0,
+  "y": -13.0,
+  "rot": 0
+ },
+ {
+  "ref": "J10",
+  "value": "Motor 3",
+  "footprint": "Connector_JST:JST_SH_BM02B-SRSS-TB_1x02-1MP_P1.00mm_Vertical",
+  "side": "B",
+  "x": -25.5,
+  "y": -12.6,
+  "rot": 0
+ },
+ {
+  "ref": "D2",
+  "value": "SS14",
+  "footprint": "Diode_SMD:D_SMA",
+  "side": "B",
+  "x": -24.85,
+  "y": -1.3,
+  "rot": 0
+ },
+ {
+  "ref": "U8",
+  "value": "DRV8833",
+  "footprint": "Package_SO:HTSSOP-16-1EP_4.4x5mm_P0.65mm_EP3.4x5mm",
+  "side": "B",
+  "x": 20.3,
+  "y": 12.8,
+  "rot": 0,
+  "model": "${KICAD10_3DMODEL_DIR}/Package_SO.3dshapes/HTSSOP-16-1EP_4.4x5mm_P0.65mm_EP3.4x5mm.step"
+ },
+ {
+  "ref": "U9",
+  "value": "DRV8833",
+  "footprint": "Package_SO:HTSSOP-16-1EP_4.4x5mm_P0.65mm_EP3.4x5mm",
+  "side": "B",
+  "x": -25.8,
+  "y": 4.5,
+  "rot": 0,
+  "model": "${KICAD10_3DMODEL_DIR}/Package_SO.3dshapes/HTSSOP-16-1EP_4.4x5mm_P0.65mm_EP3.4x5mm.step"
+ },
+ {
+  "ref": "U10",
+  "value": "Kicker boost",
+  "footprint": "Package_TO_SOT_SMD:SOT-23-6",
+  "side": "B",
+  "x": -22.5,
+  "y": -6.5,
+  "rot": 0
+ },
+ {
+  "ref": "L3",
+  "value": "Kicker inductor",
+  "footprint": "Inductor_SMD:L_1008_2520Metric",
+  "side": "B",
+  "x": -19.25,
+  "y": -6.75,
+  "rot": 0
+ },
+ {
+  "ref": "Q1",
+  "value": "AO3400",
+  "footprint": "Package_TO_SOT_SMD:SOT-23-3",
+  "side": "B",
+  "x": -22.5,
+  "y": -3.8,
+  "rot": 0
+ },
+ {
+  "ref": "U11",
+  "value": "PAA5100JE-Q",
+  "footprint": "BugBot:PAA5100JE-Q",
+  "side": "B",
+  "x": -17.0,
+  "y": 25.0,
+  "rot": 0
+ },
+ {
+  "ref": "D3",
+  "value": "Floor LED",
+  "footprint": "LED_SMD:LED_1206_3216Metric",
+  "side": "B",
+  "x": -21.0,
+  "y": 25.0,
+  "rot": 0
+ },
+ {
+  "ref": "D4",
+  "value": "Floor LED",
+  "footprint": "LED_SMD:LED_1206_3216Metric",
+  "side": "B",
+  "x": -13.0,
+  "y": 25.0,
+  "rot": 0
+ },
+ {
+  "ref": "C1",
+  "value": "330uF 35V (kicker)",
+  "footprint": "Capacitor_SMD:CP_Elec_10x12.5",
+  "side": "B",
+  "x": -9.0,
+  "y": -17.5,
+  "rot": 0
+ },
+ {
+  "ref": "SW3",
+  "value": "Power C&K L101011ML04Q",
+  "footprint": "BugBot:SW_CK_L101011ML04Q_RA",
+  "side": "B",
+  "x": -17.02,
+  "y": -26.604,
+  "rot": 0
+ },
+ {
+  "ref": "J11",
+  "value": "USB-C",
+  "footprint": "Connector_USB:USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal",
+  "side": "B",
+  "x": 17.447,
+  "y": -30.208,
+  "rot": 0
+ }
+]

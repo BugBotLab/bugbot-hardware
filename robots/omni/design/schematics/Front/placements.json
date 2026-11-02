@@ -1,0 +1,119 @@
+[
+ {
+  "ref": "U1",
+  "value": "SC035HGS camera + M7 lens holder",
+  "footprint": "BugBot:Camera_SC035HGS_M7",
+  "side": "F",
+  "x": 0.0,
+  "y": 46.1,
+  "rot": 0
+ },
+ {
+  "ref": "U2",
+  "value": "VL53L7CX",
+  "footprint": "BugBot:VL53L7CX",
+  "side": "F",
+  "x": 0.0,
+  "y": 55.6,
+  "rot": 0
+ },
+ {
+  "ref": "J1",
+  "value": "2x8 2.0 mm right-angle header",
+  "footprint": "BugBot:Header_2x08_P2.00mm_RA_Edge",
+  "side": "B",
+  "x": -3.6,
+  "y": 37.125,
+  "rot": 0
+ },
+ {
+  "ref": "C1",
+  "value": "100n",
+  "footprint": "Capacitor_SMD:C_0402_1005Metric",
+  "side": "B",
+  "x": -9.5,
+  "y": 52.25,
+  "rot": 0
+ },
+ {
+  "ref": "C2",
+  "value": "100n",
+  "footprint": "Capacitor_SMD:C_0402_1005Metric",
+  "side": "B",
+  "x": -7.5,
+  "y": 52.25,
+  "rot": 0
+ },
+ {
+  "ref": "C3",
+  "value": "100n",
+  "footprint": "Capacitor_SMD:C_0402_1005Metric",
+  "side": "B",
+  "x": 2.5,
+  "y": 52.25,
+  "rot": 0
+ },
+ {
+  "ref": "C4",
+  "value": "100n",
+  "footprint": "Capacitor_SMD:C_0402_1005Metric",
+  "side": "B",
+  "x": 4.5,
+  "y": 52.25,
+  "rot": 0
+ },
+ {
+  "ref": "C5",
+  "value": "100n",
+  "footprint": "Capacitor_SMD:C_0402_1005Metric",
+  "side": "B",
+  "x": -9.5,
+  "y": 56.25,
+  "rot": 0
+ },
+ {
+  "ref": "C6",
+  "value": "100n",
+  "footprint": "Capacitor_SMD:C_0402_1005Metric",
+  "side": "B",
+  "x": -7.5,
+  "y": 56.25,
+  "rot": 0
+ },
+ {
+  "ref": "C7",
+  "value": "100n",
+  "footprint": "Capacitor_SMD:C_0402_1005Metric",
+  "side": "B",
+  "x": 2.5,
+  "y": 56.25,
+  "rot": 0
+ },
+ {
+  "ref": "C8",
+  "value": "100n",
+  "footprint": "Capacitor_SMD:C_0402_1005Metric",
+  "side": "B",
+  "x": 4.5,
+  "y": 56.25,
+  "rot": 0
+ },
+ {
+  "ref": "C9",
+  "value": "1u",
+  "footprint": "Capacitor_SMD:C_0402_1005Metric",
+  "side": "B",
+  "x": -8.5,
+  "y": 48.25,
+  "rot": 0
+ },
+ {
+  "ref": "C10",
+  "value": "1u",
+  "footprint": "Capacitor_SMD:C_0402_1005Metric",
+  "side": "B",
+  "x": 0.5,
+  "y": 48.25,
+  "rot": 0
+ }
+]

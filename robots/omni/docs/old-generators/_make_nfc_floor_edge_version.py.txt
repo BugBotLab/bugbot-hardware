@@ -1,0 +1,243 @@
+# BugBot NFC antenna as a standard PCB under the floor (approved 2D: bugbot_freecad/sketches/nfc_floor_pcb.png), generated.
+#   C:/Python312/python.exe kicad/lib/nfc_floor_geom.py                                  (geometry, needs shapely)
+#   "C:/Program Files/KiCad/10.0/bin/python.exe" kicad/lib/make_nfc_floor.py             (this: the KiCad project)
+# BugBot_NFCfloor  JLC 2-layer FR4 1.6 mm, bare board (no assembly): the floor outline with the wheel windows and ball
+#                  notch cut out, a 3-turn loop round the edge on the top copper (against the floor), 2 plated holes at
+#                  the centre for the cable's 2 wires (hand-soldered), 3 holes for the existing nylon clamp screws (M2 x 5).
+#                  Replaces BugBot_NFCflex (and BugBot_NFCcoil); the reader board (BugBot_NFC) is unchanged.
+#                  + underglow (approved 2D: sketches/nfc_underglow.png; positions from kicad/lib/underglow_geom.py): 12 x
+#                  WS2812B-2020-V6 on the BOTTOM face, 3.0 mm in from the edge, equally spaced along the outline, 100 nF beside
+#                  each; 74AHCT1G125 level shifter, 33 R, 10 uF (bottom); JST-SH 3 J2 (top, up through the floor opening).
+#                  5 V / GND lanes (top copper) follow the LED line as one open chain: no copper ring inside the NFC loop.
+#                  All routed here (Freerouting hangs on the long lanes): a fixed pattern per LED, see the underglow block.
+import json, math, os
+import pcbnew
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+_src = open(os.path.join(HERE, "make_nfc_boards.py"), encoding="utf-8").read()
+exec(_src[:_src.index("# ================================================================== the reader board")])   # Design + helpers
+
+GEO = json.load(open(f"{ROOTDIR}/BugBot_NFCfloor/floor_geom.json"))
+PR = GEO["params"]
+X = Design("BugBot_NFCfloor", "BugBot NFC floor-plate antenna",
+           ["JLC 2-layer FR4 1.6 mm, bare board; screwed under the floor plate by the 3 nylon clamp screws (M2 x 5)",
+            f"{PR['NT']}-turn loop {PR['TW']} / {PR['GAP']} round the edge (top copper); replaces BugBot_NFCflex / BugBot_NFCcoil",
+            "J1 = 2 plated holes for the cable's wires (hand-soldered, no part). One copper path pin 1 -> loop -> pin 2 (net COIL)"], {})
+X.part("J1", "Connector_Generic:Conn_01x02", "Antenna wires (solder)",
+       "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical", {"1": "COIL", "2": "COIL"}, (60, 60), None, dnp=True)
+UG = json.load(open(f"{ROOTDIR}/BugBot_NFCfloor/underglow.json"))
+JLCP = {"D": ("WS2812B-2020-V6", "C52917434"), "U": ("SN74AHCT1G125DBVR", "C7484"), "R": ("0402WGF330JTCE", "C25105"),
+        "C13": ("CL10A106KP8NNNC", "C19702"), "C": ("CL05B104KO5NNNC", "C1525"), "J2": ("BM03B-SRSS-TB(LF)(SN)", "C160389")}
+NL = len(UG["leds"])
+X.part("J2", "Connector_Generic:Conn_01x03", "Underglow (5V DIN GND)", "Connector_JST:JST_SH_BM03B-SRSS-TB_1x03-1MP_P1.00mm_Vertical",
+       {"1": "+5V", "2": "DIN_IN", "3": "GND"}, (60, 90), JLCP["J2"])
+X.part("U1", "74xGxx:74LVC1G125", "74AHCT1G125", "Package_TO_SOT_SMD:SOT-23-5",
+       {"1": "GND", "2": "DIN_IN", "3": "GND", "4": "DIN_BUF", "5": "+5V"}, (100, 90), JLCP["U"])
+X.part("R1", "Device:R", "33R", "Resistor_SMD:R_0402_1005Metric", {"1": "DIN_BUF", "2": "D1_DIN"}, (140, 90), JLCP["R"])
+X.part("C13", "Device:C", "10uF", "Capacitor_SMD:C_0603_1608Metric", {"1": "+5V", "2": "GND"}, (60, 120), JLCP["C13"])
+for k in range(NL):
+    dout = f"D{k + 2}_DIN" if k < NL - 1 else f"D{NL}_DOUT"
+    X.part(f"D{k + 1}", "LED:WS2812B-2020", "WS2812B-2020", "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm",
+           {"1": dout, "2": "GND", "3": f"D{k + 1}_DIN", "4": "+5V"}, (180 + 30 * (k % 6), 90 + 40 * (k // 6)), JLCP["D"])
+    X.part(f"C{k + 1}", "Device:C", "100nF", "Capacitor_SMD:C_0402_1005Metric", {"1": "+5V", "2": "GND"}, (180 + 30 * (k % 6), 170 + 25 * (k // 6)), JLCP["C"])
+X.NC.add((f"D{NL}", "1"))
+X.schematic(flags=("+5V", "GND"))
+X.new_board(PR["thickness"])
+ds = X.board.GetDesignSettings()
+ds.m_CopperEdgeClearance = mm(0.3); ds.m_TrackMinWidth = mm(0.15); ds.m_MinClearance = mm(0.15)
+nc = ds.m_NetSettings.GetDefaultNetclass(); nc.SetTrackWidth(mm(PR["TW"])); nc.SetClearance(mm(0.15))
+nc.SetViaDiameter(mm(PR["via"][0])); nc.SetViaDrill(mm(PR["via"][1]))
+
+for loop in GEO["outline_edges"]:                             # exact lines and arcs: the outside + the three wheel windows
+    for e in loop:
+        sh = pcbnew.PCB_SHAPE(X.board); sh.SetLayer(pcbnew.Edge_Cuts); sh.SetWidth(mm(0.05))
+        if e["t"] == "arc":
+            sh.SetShape(pcbnew.SHAPE_T_ARC); sh.SetArcGeometry(X.P(*e["a"]), X.P(*e["m"]), X.P(*e["b"]))
+        else:
+            sh.SetShape(pcbnew.SHAPE_T_SEGMENT); sh.SetStart(X.P(*e["a"])); sh.SetEnd(X.P(*e["b"]))
+        X.board.Add(sh)
+for cx, cy in GEO["clamps"]:                                   # clamp screw holes (unplated, routed)
+    s = pcbnew.PCB_SHAPE(X.board); s.SetShape(pcbnew.SHAPE_T_CIRCLE); s.SetLayer(pcbnew.Edge_Cuts)
+    s.SetCenter(X.P(cx, cy)); s.SetEnd(X.P(cx + PR["clamp_d"] / 2, cy)); s.SetWidth(mm(0.05)); X.board.Add(s)
+
+# J1: a 2-pin 2.54 header footprint used as two solder holes; its pins on the two wire-hole points
+(hx0, hy0), (hx1, hy1) = GEO["wire_holes"]
+j = X.add_fp("J1", (hx0 + hx1) / 2, (hy0 + hy1) / 2, 0)
+pp = {p.GetNumber(): X.xy(p) for p in j.Pads()}
+rot = math.degrees(math.atan2(hy1 - hy0, hx1 - hx0) - math.atan2(pp["2"][1] - pp["1"][1], pp["2"][0] - pp["1"][0]))
+j.SetOrientationDegrees(rot)
+pp = {p.GetNumber(): X.xy(p) for p in j.Pads()}                 # the footprint's origin is pin 1: shift pin 1 onto its hole
+jx, jy = X.xy(j); j.SetPosition(X.P(jx + hx0 - pp["1"][0], jy + hy0 - pp["1"][1]))
+j.SetDNP(True); j.SetExcludedFromPosFiles(True)
+j.Models().clear()                                             # no part fitted: no 3D model (the wires are soldered in)
+for p in j.Pads():
+    p.SetDrillSize(pcbnew.VECTOR2I(mm(PR["hole"][0]), mm(PR["hole"][0]))); p.SetSize(pcbnew.VECTOR2I(mm(PR["hole"][1]), mm(PR["hole"][1])))
+    p.SetShape(pcbnew.PAD_SHAPE_CIRCLE)
+for g in j.GraphicalItems():                                   # header body outline off: there is no part
+    if g.GetLayer() in (pcbnew.F_SilkS, pcbnew.F_Fab): j.Remove(g)
+pads = {p.GetNumber(): X.xy(p) for p in j.Pads()}
+
+# ---- underglow, routed by hand (Freerouting hangs on this board). Every LED gets the same pattern in its own frame
+# (u along the data direction, v to the left): top copper = 5 V lane, GND lane (+-0.9) and the data line (centre);
+# bottom = the LED, its 100 nF across the line at u -2.25, and short links to 5 vias:
+#   Vc (0, 0) data in (centre of the LED, between its pads), Vd (+2.0, 0) data out, Vg1 (+1.6, GND side) for the LED's
+#   GND pad, Vp / Vg2 (-3.0, -+0.9) for the cap's 5 V / GND pads; the LED's VDD pad goes to the cap's 5 V pad.
+def bottom(f):
+    f.SetLayerAndFlip(pcbnew.B_Cu)
+    return f
+PATH = [tuple(p) for p in UG["feed"]] + [tuple(p) for p in UG["bus"][1:]]
+def tangent_at(pt):
+    """the path's direction at pt, from points 0.5-1.5 mm either side along it (the data direction)"""
+    i = min(range(len(PATH)), key=lambda k: math.dist(PATH[k], pt))
+    j0 = i
+    while j0 > 0 and math.dist(PATH[j0], pt) < 0.8: j0 -= 1
+    j1 = i
+    while j1 < len(PATH) - 1 and math.dist(PATH[j1], pt) < 0.8: j1 += 1
+    a, b = PATH[j0], PATH[j1]
+    L_ = math.dist(a, b); return ((b[0] - a[0]) / L_, (b[1] - a[1]) / L_), i
+def walk(i, ds):
+    """point and unit tangent ds mm along PATH from vertex i (negative: backwards)"""
+    step = 1 if ds >= 0 else -1; left = abs(ds); j = i
+    while True:
+        k = j + step
+        if k < 0 or k >= len(PATH):
+            a, b = (PATH[j - 1], PATH[j]) if step > 0 else (PATH[j], PATH[j + 1]); L_ = math.dist(a, b)
+            t = ((b[0] - a[0]) / L_, (b[1] - a[1]) / L_); return (PATH[j][0] + step * left * t[0], PATH[j][1] + step * left * t[1]), t
+        seg = math.dist(PATH[j], PATH[k])
+        if seg >= left:
+            f_ = left / seg if seg else 0; q = (PATH[j][0] + (PATH[k][0] - PATH[j][0]) * f_, PATH[j][1] + (PATH[k][1] - PATH[j][1]) * f_)
+            a, b = (PATH[j], PATH[k]) if step > 0 else (PATH[k], PATH[j]); L_ = math.dist(a, b)
+            return q, ((b[0] - a[0]) / L_, (b[1] - a[1]) / L_)
+        left -= seg; j = k
+def frame(pt):
+    (tx, ty), i = tangent_at(pt)
+    def Q(u, v):
+        q, t = walk(i, u)
+        return (q[0] - v * t[1], q[1] + v * t[0])
+    return Q, (tx, ty), i
+def local(fr_pt, t, q):                                        # robot xy -> (u, v)
+    dx, dy = q[0] - fr_pt[0], q[1] - fr_pt[1]
+    return (dx * t[0] + dy * t[1], -dx * t[1] + dy * t[0])
+LEDS = []
+SV = None                                                       # +1: GND lane on the left (+v), 5 V on the right
+for i, l in enumerate(UG["leds"]):
+    pt = (l["x"], l["y"]); P, t, idx = frame(pt)
+    f = bottom(X.add_fp(f"D{i + 1}", pt[0], pt[1], 0))
+    f.Models().clear(); m = pcbnew.FP_3DMODEL(); m.m_Filename = "${KIPRJMOD}/../lib/3dmodels/LED_WS2812B-2020_PLCC4_2.0x2.0mm.step"; f.Models().push_back(m)
+    ok = None
+    for a in range(0, 360, 90):
+        f.SetOrientationDegrees(math.degrees(math.atan2(t[1], t[0])) + a)
+        pd = {p.GetNumber(): local(pt, t, X.xy(p)) for p in f.Pads()}
+        if pd["3"][0] < 0 and pd["4"][0] < 0 and pd["1"][0] > 0 and pd["2"][0] > 0:      # DIN + VDD upstream, DOUT + GND downstream
+            ok = (a, pd); break
+    assert ok, f"D{i + 1}: no orientation with DIN upstream"
+    sv = 1 if ok[1]["2"][1] > 0 else -1                         # the GND pad's side
+    SV = sv if SV is None else SV
+    assert sv == SV, "LED pad sides differ between LEDs"
+    LEDS.append((i, pt, P, t, idx, f))
+LANE5, LANEG = (UG["lane_a"], UG["lane_b"]) if SV > 0 else (UG["lane_b"], UG["lane_a"])   # lane_a is right of the path (-v)
+X.track([tuple(p) for p in LANE5], "+5V", UG["lane_w"], pcbnew.F_Cu)
+X.track([tuple(p) for p in LANEG], "GND", UG["lane_w"], pcbnew.F_Cu)
+W_S, W_P, VIA_ = 0.2, 0.3, (0.55, 0.3)
+padxy = lambda f, n: X.xy([p for p in f.Pads() if p.GetNumber() == n][0])
+for i, pt, P, t, idx, f in LEDS:
+    din, dout = f"D{i + 1}_DIN", (f"D{i + 2}_DIN" if i < len(LEDS) - 1 else None)
+    cpt, ct = walk(idx, -2.25)
+    cap = bottom(X.add_fp(f"C{i + 1}", *cpt, 0))
+    for a in (90, -90):                                          # pads across the line, its 5 V pad on the 5 V side
+        cap.SetOrientationDegrees(math.degrees(math.atan2(ct[1], ct[0])) + a)
+        if local(cpt, ct, padxy(cap, "1"))[1] * SV < 0: break
+    Vc, Vd, Vg1, Vp, Vg2 = P(0, 0), P(2.0, 0), P(1.6, 0.9 * SV), P(-3.0, -0.9 * SV), P(-3.0, 0.9 * SV)
+    X.via(*Vc, din, *VIA_); X.via(*Vg1, "GND", *VIA_); X.via(*Vp, "+5V", *VIA_); X.via(*Vg2, "GND", *VIA_)
+    X.track([padxy(f, "3"), Vc], din, W_S, pcbnew.B_Cu)
+    X.track([padxy(f, "2"), Vg1], "GND", W_P, pcbnew.B_Cu)
+    X.track([padxy(f, "4"), padxy(cap, "1")], "+5V", W_P, pcbnew.B_Cu)
+    X.track([padxy(cap, "1"), Vp], "+5V", W_P, pcbnew.B_Cu)
+    X.track([padxy(cap, "2"), Vg2], "GND", W_P, pcbnew.B_Cu)
+    if dout:
+        X.via(*Vd, dout, *VIA_)
+        X.track([padxy(f, "1"), Vd], dout, W_S, pcbnew.B_Cu)
+        nxt = LEDS[i + 1]
+        seg = [p for p in PATH[idx:nxt[4] + 1] if math.dist(p, pt) > 2.05 and math.dist(p, nxt[1]) > 0.3]
+        X.track([Vd] + seg + [nxt[1]], dout, W_S, pcbnew.F_Cu)          # data, top centre, to the next LED's Vc
+
+# ---- centre: J2 (top) -> lanes; the level shifter U1 and R1 (bottom); the data start via Vr on the feed line
+# the lane that starts nearer the centre is fed from the J2 pin on the side the lanes leave towards (no crossing)
+l5, lg = tuple(LANE5[0]), tuple(LANEG[0])
+inner_net = "+5V" if math.hypot(*l5) < math.hypot(*lg) else "GND"
+head = 1 if PATH[1][0] > PATH[0][0] else -1                     # the feed leaves the start towards +x (1) or -x
+j2 = X.add_fp("J2", 0.0, -1.2, 0)
+for a in (0, 180):
+    j2.SetOrientationDegrees(a)
+    jp = {n: padxy(j2, n) for n in ("1", "2", "3")}           # 1 5V, 2 DIN_IN, 3 GND
+    if (jp["1" if inner_net == "+5V" else "3"][0] - jp["2"][0]) * head > 0: break
+for p in j2.Pads():
+    if p.GetNumber() == "MP": p.SetNetCode(0)
+x5, xg = jp["1"][0], jp["3"][0]
+yv = min(p[1] for p in jp.values()) - 1.23                    # vias 1.23 below the pads (pad 1.55 long + clearance)
+X.track([jp["1"], (x5, l5[1]), l5], "+5V", W_P, pcbnew.F_Cu)
+X.track([jp["3"], (xg, lg[1]), lg], "GND", W_P, pcbnew.F_Cu)
+X.track([jp["2"], (jp["2"][0], yv)], "DIN_IN", W_S, pcbnew.F_Cu)
+V5, Vdi = (x5, yv), (jp["2"][0], yv)
+X.via(*V5, "+5V", *VIA_); X.via(*Vdi, "DIN_IN", *VIA_)
+# U1 (bottom) below the vias: VCC (5) right under the 5 V via, A (2) reached straight down between pins 4 and 5
+u1 = bottom(X.add_fp("U1", 0.0, yv - 2.29, 0))
+best = None
+for a in range(0, 360, 90):
+    u1.SetOrientationDegrees(a)
+    up = {n: padxy(u1, n) for n in "12345"}
+    if abs(up["2"][0] - Vdi[0]) < 0.05 and up["2"][1] < up["5"][1]:
+        sc = abs(up["5"][0] - V5[0])
+        if best is None or sc < best[0]: best = (sc, a)
+u1.SetOrientationDegrees(best[1])
+up = {n: padxy(u1, n) for n in "12345"}
+X.track([V5, up["5"]], "+5V", W_P, pcbnew.B_Cu)
+X.track([Vdi, up["2"]], "DIN_IN", W_S, pcbnew.B_Cu)
+# both GND pins (1 = OE, 3) from a via on the top GND line further down, linked below the row
+VGu = (xg, up["2"][1] - 1.5)
+X.via(*VGu, "GND", *VIA_)
+ybelow = up["2"][1] - 0.95
+near = "3" if math.dist(up["3"], VGu) < math.dist(up["1"], VGu) else "1"; far = "1" if near == "3" else "3"
+X.track([VGu, (up[near][0], VGu[1]), up[near]], "GND", W_P, pcbnew.B_Cu)
+X.track([up[far], (up[far][0], ybelow), (up[near][0], ybelow)], "GND", W_P, pcbnew.B_Cu)
+# R1 beside pin 4 (Y), outboard; then down the outside to the data start via Vr (= the feed's first point)
+sx = 1 if up["4"][0] > 0 else -1
+r1 = bottom(X.add_fp("R1", up["4"][0] + sx * 1.25, up["4"][1], 0))
+rp = {n: padxy(r1, n) for n in ("1", "2")}
+if math.dist(rp["1"], up["4"]) > math.dist(rp["2"], up["4"]):
+    r1.SetOrientationDegrees(180); rp = {n: padxy(r1, n) for n in ("1", "2")}
+X.track([up["4"], rp["1"]], "DIN_BUF", W_S, pcbnew.B_Cu)
+k0 = 0; Vr = PATH[0]
+X.via(*Vr, "D1_DIN", *VIA_)
+X.track([rp["2"], (rp["2"][0], Vr[1]), Vr], "D1_DIN", W_S, pcbnew.B_Cu)
+X.track([Vr] + [p for p in PATH[1:LEDS[0][4] + 1] if math.dist(p, LEDS[0][1]) > 0.3] + [LEDS[0][1]], "D1_DIN", W_S, pcbnew.F_Cu)
+# C13 (10 uF) across the feed line a little further along, with its own 2 vias onto the lanes
+kc = min(range(len(PATH)), key=lambda k: abs(math.dist(PATH[k], Vr) - 3.5) + (0 if k > k0 else 9))
+Pc, tc, _ = frame(PATH[kc])
+c13 = bottom(X.add_fp("C13", *Pc(0, 0), 0))
+for a in (90, -90):
+    c13.SetOrientationDegrees(math.degrees(math.atan2(tc[1], tc[0])) + a)
+    if local(PATH[kc], tc, padxy(c13, "1"))[1] * SV < 0: break
+Vc5, Vcg = Pc(1.25, -0.9 * SV), Pc(1.25, 0.9 * SV)
+X.via(*Vc5, "+5V", *VIA_); X.via(*Vcg, "GND", *VIA_)
+X.track([padxy(c13, "1"), Vc5], "+5V", W_P, pcbnew.B_Cu); X.track([padxy(c13, "2"), Vcg], "GND", W_P, pcbnew.B_Cu)
+
+X.track([tuple(p) for p in GEO["spiral"]], "COIL", PR["TW"], pcbnew.F_Cu)
+X.via(*GEO["vias"][0], "COIL", *PR["via"]); X.via(*GEO["vias"][1], "COIL", *PR["via"])
+X.track([tuple(p) for p in GEO["bottom"]], "COIL", PR["LW"], pcbnew.B_Cu)
+la, lb = [tuple(p) for p in GEO["lead_a"]], [tuple(p) for p in GEO["lead_b"]]
+pa = min(pads, key=lambda n: math.dist(pads[n], la[-1])); pb = "2" if pa == "1" else "1"
+X.track(la[:-1] + [pads[pa]], "COIL", PR["LW"], pcbnew.F_Cu)
+X.track(lb[:-1] + [pads[pb]], "COIL", PR["LW"], pcbnew.F_Cu)
+for txt, (tx, ty), layer, sz in (("NFC wires", (0, 5.0), pcbnew.B_SilkS, 0.8), ("BugBot NFC floor", (-15, -24), pcbnew.B_SilkS, 1.2)):
+    t = pcbnew.PCB_TEXT(X.board); t.SetText(txt); t.SetPosition(X.P(tx, ty)); t.SetLayer(layer); t.SetMirrored(True)
+    t.SetTextSize(pcbnew.VECTOR2I(mm(sz), mm(sz))); t.SetTextThickness(mm(0.15)); X.board.Add(t)
+X.board.BuildConnectivity()
+X.save(None); X.project_rules()
+pro = f"{X.out}/{X.prj}.kicad_pro"; dj = json.load(open(pro))
+dj["board"]["design_settings"]["rules"].update(min_copper_edge_clearance=0.3)
+json.dump(dj, open(pro, "w"), indent=2)
+g = X.jlc_files()
+json.dump({"floor_pcb": {"thickness": PR["thickness"], "clamps": GEO["clamps"], "wire_holes": GEO["wire_holes"], "j2": [0.0, -1.2]}},
+          open(f"{X.out}/mcad.json", "w"), indent=1)
+print("floor pcb: J1 rot", round(rot, 1), "pads", {k: [round(v, 2) for v in p] for k, p in pads.items()})

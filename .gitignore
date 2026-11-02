@@ -1,7 +1,7 @@
 __pycache__/
 *.pyc
-sim/out/
-sim/bench/static/**/cache/
+robots/*/sim/out/
+robots/*/sim/bench/static/**/cache/
 *.kicad_pcb
 *.kicad_prl
 *-backups/
@@ -10,3 +10,44 @@ sim/bench/static/**/cache/
 *.gbr
 *.drl
 *.zip
+
+# --- the omni robot: CAD and build output live in the repo folder, unversioned ---
+robots/omni/**/*.FCStd
+robots/omni/**/*.FCStd1
+robots/omni/**/*.FCBak
+robots/omni/**/*.stl
+robots/omni/**/*.step
+robots/omni/**/*.stp
+robots/omni/**/*.brep
+robots/omni/**/*.3mf
+robots/omni/**/*.mp4
+robots/omni/**/*.blend
+robots/omni/**/*.blend1
+robots/omni/**/*.csg
+robots/omni/**/*.rpt
+robots/omni/**/*.log
+# every intermediate KiCad board snapshot (BugBot_Main.kicad_pcb.before-usbswap and friends)
+robots/omni/**/*.kicad_pcb.*
+robots/omni/**/*.kicad_sch.before-*
+# generated per-board working folders and fab packages
+robots/omni/design/schematics/**/jlc/
+robots/omni/design/schematics/**/_route/
+robots/omni/design/schematics/**/_place/
+robots/omni/design/schematics/**/_work/
+robots/omni/design/schematics/**/drc*.json
+robots/omni/design/schematics/**/erc*.json
+# third-party reference material and 3D models
+robots/omni/design/lib/3dmodels/
+robots/omni/design/lib/datasheets/
+# FreeCAD build output
+robots/omni/mech/freecad/_cables/
+robots/omni/mech/freecad/_col_cache/
+robots/omni/mech/freecad/bought/
+robots/omni/mech/freecad/print/
+robots/omni/mech/freecad/render/
+robots/omni/mech/freecad/render_spider/
+robots/omni/mech/freecad/BugBot_render/
+robots/omni/mech/freecad/sim_*/
+robots/omni/mech/stl/
+robots/omni/mech/renders/
+robots/omni/mech/models/
